@@ -927,10 +927,10 @@
               <div class="paste-import-head">
                 <div>
                   <div class="paste-import-title">2024 근로자정보 붙여넣기</div>
-                  <div class="hint">2024년 유급근로자 엑셀 표를 그대로 복사해 붙여넣으면 아래 2024년 표에 반영됩니다.</div>
+                  <div class="hint">엑셀에서 No, 유급근로자, 주 근로시간, 12월 근무시간 표를 그대로 복사해 붙여넣으세요.</div>
                 </div>
               </div>
-              <textarea id="workerPasteText2024" placeholder="예) 1    O    공일택    40    173.60    2,400,000"></textarea>
+              <textarea id="workerPasteText2024" placeholder="예) 1    공일택    40    173.60"></textarea>
               <div class="paste-actions">
                 <button class="btn primary" id="applyWorkerPasteBtn2024" type="button">2024 근로자 반영</button>
                 <button class="btn" id="clearWorkerPasteBtn2024" type="button">내용 지우기</button>
@@ -2288,8 +2288,34 @@ function parseWorkerPasteRows(text){
   });
   return rows;
 }
+function parseWorkerPasteRows2024(text){
+  const rows = [];
+  String(text || "").split(/\r?\n/).forEach(line => {
+    if (!line.trim()) return;
+    let cols = line.split("\t").map(cell => cell.trim());
+    if (cols.length < 4) cols = line.trim().split(/\s{2,}/).map(cell => cell.trim());
+    const joined = cols.join(" ");
+    if (/유급근로자|주\s*근로시간|12월\s*근무시간|No\b/i.test(joined)) return;
+    const offset = /^\d+$/.test(cols[0] || "") ? 1 : 0;
+    const name = cols[offset] || "";
+    const weekHours = num(cols[offset + 1]);
+    const hours = num(cols[offset + 2]);
+    if (!name || !/[가-힣A-Za-z]/.test(name)) return;
+    rows.push(createWorkerRow({
+      name,
+      paid:true,
+      weak:false,
+      weekHours,
+      hours,
+      pay:0
+    }));
+  });
+  return rows;
+}
 function applyWorkerPaste(year){
-  const rows = parseWorkerPasteRows($(`workerPasteText${year}`).value);
+  const rows = year === "2024"
+    ? parseWorkerPasteRows2024($(`workerPasteText${year}`).value)
+    : parseWorkerPasteRows($(`workerPasteText${year}`).value);
   if (!rows.length) {
     $(`workerPasteStatus${year}`).textContent = "인식된 근로자 행이 없습니다. 엑셀에서 표 범위를 다시 복사해주세요.";
     return;
