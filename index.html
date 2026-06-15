@@ -397,6 +397,15 @@
     .i3-cell-wrap{grid-template-columns:1fr 1fr 1fr}
     .table-wrap{overflow:auto}
     .worker-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0}
+    .worker-table-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+    .worker-table-card{min-width:0}
+    .worker-table-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0}
+    .worker-table-head strong{font-size:14px}
+    .worker-table-body{max-height:520px;overflow:auto}
+    .worker-table-card.collapsed .worker-table-body{display:none}
+    .worker-table-card table{font-size:12px}
+    .worker-table-card input[type="text"],.worker-table-card input[type="number"]{font-size:12px;min-height:32px;padding:6px 8px;border-radius:8px}
+    .worker-table-card input[type="checkbox"]{width:14px;height:14px}
     .worker-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
     .worker-summary-card{border:1px solid #dbe4ef;background:#f8fbff;border-radius:10px;padding:10px;text-align:center}
     .worker-summary-card span{display:block;font-size:11px;color:#64748b;font-weight:800;margin-bottom:4px}
@@ -736,7 +745,7 @@
       .dashboard-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
       .sidebar{position:relative;top:0}
       .step-list{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;max-height:none}
-      .form-grid-3,.form-grid-2,.biz-split,.addr-split,.i3-mini-grid,.i3-cell-wrap,.inline-2,.result-grid,.result-kpis{grid-template-columns:1fr}
+      .form-grid-3,.form-grid-2,.biz-split,.addr-split,.i3-mini-grid,.i3-cell-wrap,.inline-2,.result-grid,.result-kpis,.worker-table-grid{grid-template-columns:1fr}
       .company-size-block{max-width:none}
       .guide-row{flex-direction:column}
       .panel-body{padding:20px 16px 24px}
@@ -946,26 +955,38 @@
             <div class="worker-summary-card"><span>취약계층 평균시급</span><strong id="workerWeakWageSummary">0원</strong></div>
           </div>
 
-          <div class="worker-actions">
-            <strong>2025년 유급근로자</strong>
-            <button class="sample-btn dark" id="worker2025AddBtn" type="button">+ 근로자 추가</button>
-          </div>
-          <div class="table-card table-wrap">
-            <table>
-              <thead><tr><th style="width:44px;"></th><th style="width:56px;">No</th><th style="width:120px;">취약계층 유무</th><th>유급근로자</th><th style="width:130px;">주 근로시간</th><th style="width:160px;">12월 근무시간</th><th style="width:160px;">12월 급여</th></tr></thead>
-              <tbody id="worker2025Body"></tbody>
-            </table>
-          </div>
+          <div class="worker-table-grid">
+            <div class="worker-table-card" id="worker2025Card">
+              <div class="worker-table-head">
+                <strong>2025년 유급근로자</strong>
+                <div class="worker-actions" style="margin:0;">
+                  <button class="sample-btn dark" id="worker2025AddBtn" type="button">+ 근로자 추가</button>
+                  <button class="sample-btn" id="worker2025ToggleBtn" type="button">접기</button>
+                </div>
+              </div>
+              <div class="table-card table-wrap worker-table-body">
+                <table>
+                  <thead><tr><th style="width:38px;"></th><th style="width:44px;">No</th><th style="width:92px;">취약계층</th><th>유급근로자</th><th style="width:88px;">주 근로</th><th style="width:104px;">12월 시간</th><th style="width:116px;">12월 급여</th></tr></thead>
+                  <tbody id="worker2025Body"></tbody>
+                </table>
+              </div>
+            </div>
 
-          <div class="worker-actions" style="margin-top:18px;">
-            <strong>2024년 유급근로자</strong>
-            <button class="sample-btn dark" id="worker2024AddBtn" type="button">+ 근로자 추가</button>
-          </div>
-          <div class="table-card table-wrap">
-            <table>
-              <thead><tr><th style="width:44px;"></th><th style="width:56px;">No</th><th style="width:120px;">취약계층 유무</th><th>유급근로자</th><th style="width:130px;">주 근로시간</th><th style="width:160px;">12월 근무시간</th><th style="width:160px;">12월 급여</th></tr></thead>
-              <tbody id="worker2024Body"></tbody>
-            </table>
+            <div class="worker-table-card" id="worker2024Card">
+              <div class="worker-table-head">
+                <strong>2024년 유급근로자</strong>
+                <div class="worker-actions" style="margin:0;">
+                  <button class="sample-btn dark" id="worker2024AddBtn" type="button">+ 근로자 추가</button>
+                  <button class="sample-btn" id="worker2024ToggleBtn" type="button">접기</button>
+                </div>
+              </div>
+              <div class="table-card table-wrap worker-table-body">
+                <table>
+                  <thead><tr><th style="width:38px;"></th><th style="width:44px;">No</th><th style="width:92px;">취약계층</th><th>유급근로자</th><th style="width:88px;">주 근로</th><th style="width:104px;">12월 시간</th><th style="width:116px;">12월 급여</th></tr></thead>
+                  <tbody id="worker2024Body"></tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -2325,6 +2346,13 @@ function applyWorkerPaste(year){
   refreshAll();
   saveData(false);
   $(`workerPasteStatus${year}`).textContent = `${year}년 근로자 ${rows.length}명을 반영했습니다.`;
+}
+function toggleWorkerTable(year){
+  const card = $(`worker${year}Card`);
+  const button = $(`worker${year}ToggleBtn`);
+  if (!card || !button) return;
+  const collapsed = card.classList.toggle("collapsed");
+  button.textContent = collapsed ? "펼치기" : "접기";
 }
 function rowsFromSviWorkerSheet(sheetRows){
   const rows2025 = [];
@@ -4240,6 +4268,8 @@ $("i3SampleBtn").addEventListener("click", fillI3Sample);
 $("i3ClearBtn").addEventListener("click", clearI3Sample);
 $("worker2025AddBtn").addEventListener("click", () => { const rows = getWorkerRows("worker2025Body"); rows.push(createWorkerRow()); renderWorkerRows("worker2025Body", rows); refreshAll(); saveData(false); });
 $("worker2024AddBtn").addEventListener("click", () => { const rows = getWorkerRows("worker2024Body"); rows.push(createWorkerRow()); renderWorkerRows("worker2024Body", rows); refreshAll(); saveData(false); });
+$("worker2025ToggleBtn").addEventListener("click", () => toggleWorkerTable("2025"));
+$("worker2024ToggleBtn").addEventListener("click", () => toggleWorkerTable("2024"));
 $("applyWorkerPasteBtn2025").addEventListener("click", () => applyWorkerPaste("2025"));
 $("clearWorkerPasteBtn2025").addEventListener("click", () => {
   $("workerPasteText2025").value = "";
