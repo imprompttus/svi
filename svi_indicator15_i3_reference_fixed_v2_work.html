@@ -691,6 +691,43 @@
       font-weight:800;
     }
     .app-company-bar strong{color:#1550aa}
+    .paste-import{
+      border:1px solid #d7e3f0;
+      border-radius:14px;
+      background:#f8fbff;
+      padding:14px;
+      margin-bottom:16px;
+    }
+    .paste-import-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .paste-import-title{
+      font-weight:900;
+      color:#173a5e;
+      font-size:15px;
+    }
+    .paste-import textarea{
+      min-height:150px;
+      background:#fff;
+      font-size:13px;
+      line-height:1.5;
+    }
+    .paste-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      margin-top:10px;
+    }
+    .paste-status{
+      color:var(--muted);
+      font-size:12px;
+      font-weight:800;
+    }
 
     @media (max-width: 1100px){
       .wrap{grid-template-columns:1fr}
@@ -778,6 +815,20 @@
       <div class="panel-body">
         <!-- STEP 0 -->
         <section class="step-panel active" data-step="0">
+          <div class="paste-import">
+            <div class="paste-import-head">
+              <div>
+                <div class="paste-import-title">기업정보 붙여넣기</div>
+                <div class="hint">다른 사이트에서 복사한 기업정보를 그대로 붙여넣으면 아래 입력칸에 자동 반영됩니다.</div>
+              </div>
+            </div>
+            <textarea id="companyPasteText" placeholder="예) 기업명, 대표자명, 조직유형, 매출 및 영업이익, 고용현황 등을 포함한 내용을 그대로 붙여넣으세요."></textarea>
+            <div class="paste-actions">
+              <button class="btn primary" id="applyCompanyPasteBtn" type="button">기업정보 반영</button>
+              <button class="btn" id="clearCompanyPasteBtn" type="button">내용 지우기</button>
+              <span class="paste-status" id="companyPasteStatus">붙여넣기 대기 중</span>
+            </div>
+          </div>
           <div class="section form-grid-3">
             <div class="field"><label class="req">기업명</label><input id="companyName" type="text" placeholder="예)소셜비즈니스디자인 협동조합"></div>
             <div class="field"><label class="req">대표자명</label><input id="ceoName" type="text"></div>
@@ -857,9 +908,23 @@
           <div class="guide-row">
             <div>2025년 및 2024년 유급근로자 정보를 입력합니다. 입력된 값은 기업정보의 고용현황과 지표 3의 취약계층 고용비율 및 평균시급에 자동 반영됩니다.</div>
           </div>
-          <div class="section">
-            <div class="field"><label>근로자 자료 파일 첨부</label><input id="workerPdfFile" type="file" accept=".xlsx,.csv,.tsv,.pdf,.png,.jpg,.jpeg"></div>
-            <div class="hint" id="workerImportStatus">* 엑셀 검토표(.xlsx) 또는 CSV/TSV를 선택하면 근로자정보 표에 자동 입력됩니다. PDF/스캔본 OCR은 다음 단계에서 연결 예정입니다.</div>
+          <div class="paste-import">
+            <div class="paste-import-head">
+              <div>
+                <div class="paste-import-title">근로자정보 붙여넣기</div>
+                <div class="hint">엑셀에서 No, 취약계층 유무, 유급근로자, 주 근로시간, 12월 근무시간, 12월 급여 표를 그대로 복사해 붙여넣으세요.</div>
+              </div>
+            </div>
+            <textarea id="workerPasteText" placeholder="예) 1    O    공일택    40    173.60    2,400,000"></textarea>
+            <div class="paste-actions">
+              <select id="workerPasteYear" style="height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;">
+                <option value="2025">2025년 유급근로자</option>
+                <option value="2024">2024년 유급근로자</option>
+              </select>
+              <button class="btn primary" id="applyWorkerPasteBtn" type="button">근로자정보 반영</button>
+              <button class="btn" id="clearWorkerPasteBtn" type="button">내용 지우기</button>
+              <span class="paste-status" id="workerPasteStatus">붙여넣기 대기 중</span>
+            </div>
           </div>
 
           <div class="worker-summary-grid">
@@ -875,7 +940,7 @@
           </div>
           <div class="table-card table-wrap">
             <table>
-              <thead><tr><th style="width:44px;"></th><th>성명</th><th style="width:120px;">유급근로자</th><th style="width:120px;">취약계층</th><th style="width:160px;">12월 급여</th><th style="width:160px;">12월 근무시간</th></tr></thead>
+              <thead><tr><th style="width:44px;"></th><th style="width:56px;">No</th><th style="width:120px;">취약계층 유무</th><th>유급근로자</th><th style="width:130px;">주 근로시간</th><th style="width:160px;">12월 근무시간</th><th style="width:160px;">12월 급여</th></tr></thead>
               <tbody id="worker2025Body"></tbody>
             </table>
           </div>
@@ -886,7 +951,7 @@
           </div>
           <div class="table-card table-wrap">
             <table>
-              <thead><tr><th style="width:44px;"></th><th>성명</th><th style="width:120px;">유급근로자</th><th style="width:120px;">취약계층</th><th style="width:160px;">12월 급여</th><th style="width:160px;">12월 근무시간</th></tr></thead>
+              <thead><tr><th style="width:44px;"></th><th style="width:56px;">No</th><th style="width:120px;">취약계층 유무</th><th>유급근로자</th><th style="width:130px;">주 근로시간</th><th style="width:160px;">12월 근무시간</th><th style="width:160px;">12월 급여</th></tr></thead>
               <tbody id="worker2024Body"></tbody>
             </table>
           </div>
@@ -1063,6 +1128,20 @@
         <!-- STEP 5 -->
         <section class="step-panel" data-step="5">
           <div class="guide-row"><div>사회적가치를 지향하는 지역사회의 기관(공공기관 및 민간기업 등)과의 협력 활동수준을 확인합니다.</div></div>
+          <div class="paste-import">
+            <div class="paste-import-head">
+              <div>
+                <div class="paste-import-title">지표5 협력활동 붙여넣기</div>
+                <div class="hint">지역구분, 협력기관, 목적, 협력활동, 횟수 순서로 복사한 내용을 붙여넣으면 표에 자동 반영됩니다.</div>
+              </div>
+            </div>
+            <textarea id="i5PasteText" placeholder="예) 대구시 동구    동구진로진학지원센터    목적 내용    협력활동 내용    연 1회"></textarea>
+            <div class="paste-actions">
+              <button class="btn primary" id="applyI5PasteBtn" type="button">지표5 반영</button>
+              <button class="btn" id="clearI5PasteBtn" type="button">내용 지우기</button>
+              <span class="paste-status" id="i5PasteStatus">붙여넣기 대기 중</span>
+            </div>
+          </div>
           <label class="sub-check"><input type="checkbox" id="i5None"> 해당 없음(우리기업은 공공/민간기업 등과 협력 활동이 없습니다.)</label>
           <div class="topbar"><div></div><button class="sample-btn dark" id="i5AddRowBtn" type="button">+ 행추가</button></div>
           <div class="table-card"><div class="table-wrap" id="i5Wrap"><table class="i5-table"><thead><tr><th style="width:44px;"></th><th style="width:160px;">지역구분</th><th style="width:180px;">협력기관</th><th style="width:190px;">목적</th><th>협력활동</th><th style="width:90px;">횟수</th></tr></thead><tbody id="i5TableBody"></tbody></table></div></div>
@@ -1098,6 +1177,20 @@
           <div class="guide-row"><div>이해관계자의 주요 의사결정기구 참여율과 운영 결과 공유 실적을 측정합니다.</div></div>
           <label class="sub-check"><input type="checkbox" id="i7None"> 해당 없음(주요 의사결정기구 운영 실적이 없습니다.)</label>
           <label class="sub-check"><input type="checkbox" id="i7BoardEnabled"> 이사회 또는 운영위원회를 주요 의사결정기구로 운영하는 경우</label>
+          <div class="paste-import">
+            <div class="paste-import-head">
+              <div>
+                <div class="paste-import-title">지표7 이사회/운영위원회 붙여넣기</div>
+                <div class="hint">의사결정기구, 회의일자, 공유여부, 회의 참여임원, 사외이사, 근로자 대표 순서로 복사한 내용을 붙여넣으면 표에 자동 반영됩니다.</div>
+              </div>
+            </div>
+            <textarea id="i7PasteText" placeholder="예) 이사회    2025.03.17    여    부    4    1    1"></textarea>
+            <div class="paste-actions">
+              <button class="btn primary" id="applyI7PasteBtn" type="button">지표7 반영</button>
+              <button class="btn" id="clearI7PasteBtn" type="button">내용 지우기</button>
+              <span class="paste-status" id="i7PasteStatus">붙여넣기 대기 중</span>
+            </div>
+          </div>
           <div class="topbar"><div></div><button class="sample-btn dark" id="i7AddBoardBtn" type="button">+ 행추가</button></div>
           <div class="table-card disabled-wrap" id="i7BoardWrap"><div class="table-wrap"><table class="i7-table"><thead><tr><th style="width:44px;"></th><th>의사결정기구</th><th style="width:160px;">회의일자</th><th style="width:130px;">임직원 공유여부</th><th style="width:110px;">회의 참여임원</th><th style="width:110px;">사외이사</th><th style="width:110px;">근로자 대표</th></tr></thead><tbody id="i7BoardBody"></tbody><tfoot><tr><td colspan="4" class="sum-cell">합계</td><td class="sum-cell" id="i7BoardSumAttend">0</td><td class="sum-cell" id="i7BoardSumOutside">0</td><td class="sum-cell" id="i7BoardSumWorker">0</td></tr></tfoot></table></div></div>
 
@@ -1495,20 +1588,23 @@ const INDUSTRY_RULES = [
   { name: "광업(B)", limit: 8000000000 },
   { name: "제조업(C)", limit: 10000000000 },
   { name: "전기, 가스, 증기 및 공기조절 공급업(D)", limit: 12000000000 },
-  { name: "수도, 하수, 폐기물 처리, 원료 재생업(E)", limit: 3000000000 },
+  { name: "수도, 하수, 폐기물 처리, 원료 재생업(E)", limit: 4000000000 },
   { name: "건설업(F)", limit: 8000000000 },
-  { name: "도매 및 소매업(G)", limit: 5000000000 },
-  { name: "운수 및 창고업(H)", limit: 8000000000 },
-  { name: "숙박 및 음식점업(I)", limit: 1000000000 },
+  { name: "도매 및 소매업(G)", limit: 6000000000 },
+  { name: "운수 및 창고업(H)", limit: 10000000000 },
+  { name: "숙박 및 음식점업(I)", limit: 1500000000 },
   { name: "정보통신업(J)", limit: 5000000000 },
-  { name: "금융 및 보험업(K)", limit: 8000000000 },
+  { name: "금융 및 보험업(K)", limit: 10000000000 },
   { name: "부동산업(L)", limit: 3000000000 },
   { name: "전문, 과학 및 기술 서비스업(M)", limit: 3000000000 },
   { name: "사업시설 관리, 사업 지원 및 임대 서비스업(N)", limit: 3000000000 },
-  { name: "교육 서비스업(P)", limit: 1000000000 },
-  { name: "보건업 및 사회복지 서비스업(Q)", limit: 1000000000 },
+  { name: "공공 행정, 국방 및 사회보장 행정(O)", limit: null },
+  { name: "교육 서비스업(P)", limit: 1500000000 },
+  { name: "보건업 및 사회복지 서비스업(Q)", limit: 1500000000 },
   { name: "예술, 스포츠 및 여가관련 서비스업(R)", limit: 3000000000 },
-  { name: "협회 및 단체, 수리 및 기타 개인 서비스업(S)", limit: 1000000000 }
+  { name: "협회 및 단체, 수리 및 기타 개인 서비스업(S)", limit: 1500000000 },
+  { name: "가구 내 고용활동 및 달리 분류되지 않은 자가소비 생산활동(T)", limit: null },
+  { name: "국제 및 외국기관(U)", limit: null }
 ];
 
 const INDUSTRY_AVG_MAP = {
@@ -1829,6 +1925,153 @@ function escapeHtml(str){
     .replaceAll(">","&gt;")
     .replaceAll('"',"&quot;");
 }
+
+function normalizePasteLabel(label){
+  return String(label || "")
+    .replace(/\([^)]*\)/g, "")
+    .replace(/\s+/g, "")
+    .replace(/[:：]/g, "")
+    .trim();
+}
+function normalizePasteText(text){
+  return String(text || "")
+    .replace(/\r/g, "")
+    .replace(/\u00a0/g, " ")
+    .replace(/[ \t]+$/gm, "")
+    .trim();
+}
+function getPastedValue(lines, labels, options={}){
+  const normalizedLabels = labels.map(normalizePasteLabel);
+  const stopLabels = (options.stopLabels || []).map(normalizePasteLabel);
+  const allStopLabels = [...new Set([...normalizedLabels, ...stopLabels])];
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    const normalized = normalizePasteLabel(line);
+    const matchedIndex = normalizedLabels.findIndex(label => normalized === label || normalized.startsWith(label));
+    if (matchedIndex < 0) continue;
+    const label = normalizedLabels[matchedIndex];
+    const inline = normalized.slice(label.length).trim();
+    if (inline) return line.replace(new RegExp(`^\\s*${labels[matchedIndex].replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[:：]?\\s*`), "").trim() || inline;
+    const values = [];
+    for (let j = i + 1; j < lines.length; j++) {
+      const next = lines[j].trim();
+      if (!next) {
+        if (values.length && !options.multiline) break;
+        if (values.length) values.push("");
+        continue;
+      }
+      const nextNormalized = normalizePasteLabel(next);
+      if (allStopLabels.some(stop => nextNormalized === stop || nextNormalized.startsWith(stop))) break;
+      values.push(next);
+      if (!options.multiline) break;
+    }
+    return values.join("\n").trim();
+  }
+  return "";
+}
+function parseYearRow(lines, rowLabels){
+  const normalizedLabels = rowLabels.map(normalizePasteLabel);
+  for (const line of lines) {
+    const normalized = normalizePasteLabel(line);
+    if (!normalizedLabels.some(label => normalized.startsWith(label))) continue;
+    const numbers = line.match(/-?[\d,]+(?:\.\d+)?/g) || [];
+    if (numbers.length >= 3) {
+      return {
+        2023: cleanNumber(numbers[numbers.length - 3]),
+        2024: cleanNumber(numbers[numbers.length - 2]),
+        2025: cleanNumber(numbers[numbers.length - 1])
+      };
+    }
+  }
+  return null;
+}
+function setIfValue(id, value){
+  if (!$(id) || value === undefined || value === null || String(value).trim() === "") return false;
+  $(id).value = String(value).trim();
+  formatMoneyInput($(id));
+  return true;
+}
+function setSelectIfOption(id, value){
+  if (!$(id) || !value) return false;
+  const cleaned = String(value).trim();
+  const option = [...$(id).options].find(opt => opt.value === cleaned || opt.textContent.trim() === cleaned);
+  if (option) {
+    $(id).value = option.value;
+    return true;
+  }
+  return false;
+}
+function setRadioIfValue(name, value){
+  const target = [...document.querySelectorAll(`input[name="${name}"]`)].find(radio => radio.value === String(value).trim());
+  if (target) {
+    target.checked = true;
+    return true;
+  }
+  return false;
+}
+function applyCompanyPaste(){
+  const raw = $("companyPasteText").value;
+  const text = normalizePasteText(raw);
+  if (!text) {
+    $("companyPasteStatus").textContent = "붙여넣은 내용이 없습니다.";
+    return;
+  }
+  const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+  const stops = [
+    "기업명","대표자명","조직유형","설립일","인증번호","사업자등록번호","주 업종","사회적목적","전화번호(회사)","전화번호(휴대폰)",
+    "소재지 주소","기업연혁(수상내역 등)","주요 사업내용","기업 규모","매출 및 영업이익","고용현황"
+  ];
+  let count = 0;
+  count += setIfValue("companyName", getPastedValue(lines, ["기업명"], { stopLabels:stops })) ? 1 : 0;
+  count += setIfValue("ceoName", getPastedValue(lines, ["대표자명"], { stopLabels:stops })) ? 1 : 0;
+  count += setIfValue("foundedDate", getPastedValue(lines, ["설립일"], { stopLabels:stops })) ? 1 : 0;
+  count += setIfValue("certNo", getPastedValue(lines, ["인증번호", "인증(지정)번호"], { stopLabels:stops })) ? 1 : 0;
+  count += setIfValue("bizNo", getPastedValue(lines, ["사업자등록번호"], { stopLabels:stops })) ? 1 : 0;
+  count += setIfValue("phoneOffice", getPastedValue(lines, ["전화번호(회사)", "전화번호회사"], { stopLabels:stops })) ? 1 : 0;
+  count += setIfValue("phoneMobile", getPastedValue(lines, ["전화번호(휴대폰)", "전화번호휴대폰"], { stopLabels:stops })) ? 1 : 0;
+  count += setIfValue("addrFull", getPastedValue(lines, ["소재지 주소", "소재지주소"], { stopLabels:stops })) ? 1 : 0;
+  count += setIfValue("history", getPastedValue(lines, ["기업연혁(수상내역 등)", "기업연혁"], { multiline:true, stopLabels:stops })) ? 1 : 0;
+  count += setIfValue("mainBiz", getPastedValue(lines, ["주요 사업내용", "주요사업내용"], { multiline:true, stopLabels:stops })) ? 1 : 0;
+  const industry = getPastedValue(lines, ["(신청) 주 업종", "신청 주 업종", "주 업종"], { stopLabels:stops });
+  count += setSelectIfOption("industry", industry) ? 1 : 0;
+  count += setSelectIfOption("orgType", getPastedValue(lines, ["조직유형"], { stopLabels:stops })) ? 1 : 0;
+  count += setSelectIfOption("socialPurpose", getPastedValue(lines, ["사회적목적"], { stopLabels:stops })) ? 1 : 0;
+  count += setRadioIfValue("companySize", getPastedValue(lines, ["기업 규모", "기업규모"], { stopLabels:stops })) ? 1 : 0;
+
+  const sales = parseYearRow(lines, ["매출액"]);
+  if (sales) {
+    count += setIfValue("sales2023", sales[2023]) ? 1 : 0;
+    count += setIfValue("sales2024", sales[2024]) ? 1 : 0;
+    count += setIfValue("sales2025", sales[2025]) ? 1 : 0;
+  }
+  const profit = parseYearRow(lines, ["영업이익"]);
+  if (profit) {
+    count += setIfValue("profit2023", profit[2023]) ? 1 : 0;
+    count += setIfValue("profit2024", profit[2024]) ? 1 : 0;
+    count += setIfValue("profit2025", profit[2025]) ? 1 : 0;
+  }
+  const net = parseYearRow(lines, ["당기순이익"]);
+  if (net) {
+    count += setIfValue("net2023", net[2023]) ? 1 : 0;
+    count += setIfValue("net2024", net[2024]) ? 1 : 0;
+    count += setIfValue("net2025", net[2025]) ? 1 : 0;
+  }
+  const workers = parseYearRow(lines, ["총 근로자 수", "총근로자수"]);
+  if (workers) {
+    count += setIfValue("worker2023", workers[2023]) ? 1 : 0;
+    count += setIfValue("worker2024", workers[2024]) ? 1 : 0;
+    count += setIfValue("worker2025", workers[2025]) ? 1 : 0;
+  }
+  const weak = parseYearRow(lines, ["취약계층"]);
+  if (weak) {
+    count += setIfValue("weak2023", weak[2023]) ? 1 : 0;
+    count += setIfValue("weak2024", weak[2024]) ? 1 : 0;
+    count += setIfValue("weak2025", weak[2025]) ? 1 : 0;
+  }
+  refreshAll();
+  saveData(false);
+  $("companyPasteStatus").textContent = count ? `${count}개 항목을 반영했습니다.` : "인식된 항목이 없습니다. 붙여넣기 형식을 확인해주세요.";
+}
 function buildEvidenceBox(groups){
   const box = document.createElement("div");
   box.className = "reference-box evidence-reference";
@@ -1880,18 +2123,20 @@ function setRadioValue(name, value){
   const target = document.querySelector(`input[name="${name}"][value="${value}"]`);
   if (target) target.checked = true;
 }
-function createWorkerRow(){ return { name:"", paid:true, weak:false, pay:0, hours:0 }; }
+function createWorkerRow(data={}){ return { name:data.name || "", paid:data.paid !== false, weak:!!data.weak, weekHours:data.weekHours || 0, pay:data.pay || 0, hours:data.hours || 0 }; }
 function renderWorkerRows(bodyId, rows){
   const body = $(bodyId);
   if (!body) return;
-  body.innerHTML = rows.map(row => `
+  body.innerHTML = rows.map((row, idx) => `
     <tr>
       <td><button class="copy-btn" type="button" onclick="this.closest('tr').remove(); refreshAll(); saveData(false);">×</button></td>
-      <td><input type="text" data-field="name" value="${escapeHtml(row.name || "")}"></td>
-      <td><input type="checkbox" data-field="paid" ${row.paid !== false ? "checked" : ""}></td>
+      <td class="sum-cell">${idx + 1}</td>
       <td><input type="checkbox" data-field="weak" ${row.weak ? "checked" : ""}></td>
-      <td><input class="money-input" type="text" data-field="pay" value="${escapeHtml(row.pay ?? 0)}"></td>
+      <td><input type="text" data-field="name" value="${escapeHtml(row.name || "")}"></td>
+      <td><input type="number" data-field="weekHours" step="0.01" value="${escapeHtml(row.weekHours ?? 0)}"></td>
       <td><input type="number" data-field="hours" step="0.01" value="${escapeHtml(row.hours ?? 0)}"></td>
+      <td><input class="money-input" type="text" data-field="pay" value="${escapeHtml(row.pay ?? 0)}"></td>
+      <td hidden><input type="checkbox" data-field="paid" ${row.paid !== false ? "checked" : ""}></td>
     </tr>
   `).join("");
   setupMoneyInputs(body);
@@ -1903,6 +2148,7 @@ function getWorkerRows(bodyId){
     name: tr.querySelector('[data-field="name"]')?.value.trim() || "",
     paid: !!tr.querySelector('[data-field="paid"]')?.checked,
     weak: !!tr.querySelector('[data-field="weak"]')?.checked,
+    weekHours: num(tr.querySelector('[data-field="weekHours"]')?.value),
     pay: num(tr.querySelector('[data-field="pay"]')?.value),
     hours: num(tr.querySelector('[data-field="hours"]')?.value)
   }));
@@ -1911,22 +2157,28 @@ function ensureWorkerDefaultRows(){
   if (!$("worker2025Body")?.children.length) renderWorkerRows("worker2025Body", [createWorkerRow()]);
   if (!$("worker2024Body")?.children.length) renderWorkerRows("worker2024Body", [createWorkerRow()]);
 }
+function hasWorkerRowData(row){
+  return !!(row.name || row.weak || num(row.weekHours) || num(row.pay) || num(row.hours));
+}
 function updateWorkerInfo(){
-  const rows2025 = getWorkerRows("worker2025Body");
-  const rows2024 = getWorkerRows("worker2024Body");
+  const rows2025 = getWorkerRows("worker2025Body").filter(hasWorkerRowData);
+  const rows2024 = getWorkerRows("worker2024Body").filter(hasWorkerRowData);
   const paid2025 = rows2025.filter(r => r.paid);
   const paid2024 = rows2024.filter(r => r.paid);
   const weak2025Rows = paid2025.filter(r => r.weak);
   const weak2024Rows = paid2024.filter(r => r.weak);
-  const weakRate = paid2025.length ? (weak2025Rows.length / paid2025.length) * 100 : 0;
+  const hasDetailedWorkerRows = paid2025.length || paid2024.length;
+  const companyWorker2025 = num($("worker2025").value);
+  const companyWeak2025 = num($("weak2025").value);
+  const weakRate = paid2025.length ? (weak2025Rows.length / paid2025.length) * 100 : (companyWorker2025 ? (companyWeak2025 / companyWorker2025) * 100 : 0);
   const weakPay = weak2025Rows.reduce((sum, row) => sum + num(row.pay), 0);
   const weakHours = weak2025Rows.reduce((sum, row) => sum + num(row.hours), 0);
   const weakWage = weakHours ? weakPay / weakHours : 0;
-  $("worker2025Summary").textContent = `${paid2025.length}명`;
-  $("weak2025Summary").textContent = `${weak2025Rows.length}명`;
+  $("worker2025Summary").textContent = `${hasDetailedWorkerRows ? paid2025.length : companyWorker2025}명`;
+  $("weak2025Summary").textContent = `${hasDetailedWorkerRows ? weak2025Rows.length : companyWeak2025}명`;
   $("workerWeakRateSummary").textContent = `${weakRate.toFixed(1)}%`;
   $("workerWeakWageSummary").textContent = `${fmt(Math.round(weakWage))}원`;
-  if (paid2025.length || paid2024.length) {
+  if (hasDetailedWorkerRows) {
     $("worker2025").value = paid2025.length;
     $("worker2024").value = paid2024.length;
     $("weak2025").value = weak2025Rows.length;
@@ -1996,7 +2248,45 @@ function parseWorksheet(xmlText, sharedStrings){
 }
 function yesLike(value){
   const text = String(value || "").trim().toUpperCase();
-  return ["O","Y","YES","TRUE","1","예","유"].includes(text);
+  return ["O","○","◯","Y","YES","TRUE","1","예","유"].includes(text);
+}
+function parseWorkerPasteRows(text){
+  const rows = [];
+  String(text || "").split(/\r?\n/).forEach(line => {
+    if (!line.trim()) return;
+    let cols = line.split("\t").map(cell => cell.trim());
+    if (cols.length < 5) cols = line.trim().split(/\s{2,}/).map(cell => cell.trim());
+    const joined = cols.join(" ");
+    if (/유급근로자|취약계층\s*유무|12월\s*급여|No\b/i.test(joined)) return;
+    const offset = /^\d+$/.test(cols[0] || "") ? 1 : 0;
+    const weakValue = cols[offset] || "";
+    const name = cols[offset + 1] || "";
+    const weekHours = num(cols[offset + 2]);
+    const hours = num(cols[offset + 3]);
+    const pay = num(cols[offset + 4]);
+    if (!name || !/[가-힣A-Za-z]/.test(name)) return;
+    rows.push(createWorkerRow({
+      name,
+      paid:true,
+      weak:yesLike(weakValue),
+      weekHours,
+      hours,
+      pay
+    }));
+  });
+  return rows;
+}
+function applyWorkerPaste(){
+  const rows = parseWorkerPasteRows($("workerPasteText").value);
+  if (!rows.length) {
+    $("workerPasteStatus").textContent = "인식된 근로자 행이 없습니다. 엑셀에서 표 범위를 다시 복사해주세요.";
+    return;
+  }
+  const bodyId = $("workerPasteYear").value === "2024" ? "worker2024Body" : "worker2025Body";
+  renderWorkerRows(bodyId, rows);
+  refreshAll();
+  saveData(false);
+  $("workerPasteStatus").textContent = `${$("workerPasteYear").value}년 근로자 ${rows.length}명을 반영했습니다.`;
 }
 function rowsFromSviWorkerSheet(sheetRows){
   const rows2025 = [];
@@ -2065,10 +2355,125 @@ function rowsFromDelimitedText(text){
   })).filter(row => row.name || row.weak || row.pay || row.hours);
   return { rows2025:mapped, rows2024:[] };
 }
+function loadTesseract(){
+  if (window.Tesseract) return Promise.resolve(window.Tesseract);
+  return new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js";
+    script.onload = () => window.Tesseract ? resolve(window.Tesseract) : reject(new Error("OCR 엔진을 불러오지 못했습니다."));
+    script.onerror = () => reject(new Error("OCR 엔진 연결에 실패했습니다. 인터넷 연결을 확인해주세요."));
+    document.head.appendChild(script);
+  });
+}
+function loadPdfJs(){
+  if (window.pdfjsLib) return Promise.resolve(window.pdfjsLib);
+  return import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.min.mjs")
+    .then(pdfjsLib => {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/pdf.worker.min.mjs";
+      window.pdfjsLib = pdfjsLib;
+      return pdfjsLib;
+    })
+    .catch(() => {
+      throw new Error("PDF 엔진 연결에 실패했습니다. 인터넷 연결을 확인해주세요.");
+    });
+}
+function getWorkerBaseYearFromText(text){
+  const match = String(text || "").match(/검색\s*기준\s*[:：]?\s*(20\d{2})[./-]\d{1,2}[./-]\d{1,2}/);
+  return match ? Number(match[1]) : 2025;
+}
+function normalizeBirthYear(year, baseYear){
+  const raw = Number(year);
+  if (raw >= 1000) return raw;
+  return raw <= (baseYear % 100) ? 2000 + raw : 1900 + raw;
+}
+function isAgeAtLeast55(year, month, day, baseYear){
+  const birth = new Date(Number(year), Number(month) - 1, Number(day));
+  const base = new Date(Number(baseYear), 11, 31);
+  let age = base.getFullYear() - birth.getFullYear();
+  const beforeBirthday = base.getMonth() < birth.getMonth() || (base.getMonth() === birth.getMonth() && base.getDate() < birth.getDate());
+  if (beforeBirthday) age -= 1;
+  return age >= 55;
+}
+function cleanOcrWorkerName(name){
+  return String(name || "").replace(/[^가-힣]/g, "").trim();
+}
+function parseWorkerRowsFromOcrText(text){
+  const normalized = String(text || "")
+    .replace(/[|｜]/g, " ")
+    .replace(/[—–]/g, "-")
+    .replace(/([가-힣])(\d{2,4})\s*년/g, "$1 $2년")
+    .replace(/\s+/g, " ");
+  const baseYear = getWorkerBaseYearFromText(text);
+  const matches = [];
+  const seen = new Set();
+  const pattern = /(?:^|\s)(?:\d{1,2}\s+)?([가-힣]{2,5})\s+(\d{2,4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일/g;
+  let match;
+  while ((match = pattern.exec(normalized))) {
+    const [, rawName, yy, mm, dd] = match;
+    const name = cleanOcrWorkerName(rawName);
+    const fullYear = normalizeBirthYear(yy, baseYear);
+    const key = `${name}-${fullYear}-${mm}-${dd}`;
+    if (!name || name.length < 2 || fullYear < 1900 || fullYear > baseYear || seen.has(key)) continue;
+    seen.add(key);
+    matches.push(createWorkerRow({
+      name,
+      paid:true,
+      weak:isAgeAtLeast55(fullYear, mm, dd, baseYear),
+      pay:0,
+      hours:0
+    }));
+  }
+  return { baseYear, rows:matches };
+}
+async function rowsFromWorkerImage(file, status){
+  const Tesseract = await loadTesseract();
+  status.textContent = "이미지 OCR 인식 중입니다... 처음 실행 시 10~30초 정도 걸릴 수 있습니다.";
+  const result = await Tesseract.recognize(file, "kor+eng", {
+    preserve_interword_spaces: "1",
+    tessedit_pageseg_mode: "6",
+    logger: progress => {
+      if (progress.status === "recognizing text") {
+        status.textContent = `이미지 OCR 인식 중입니다... ${Math.round((progress.progress || 0) * 100)}%`;
+      }
+    }
+  });
+  const text = result?.data?.text || "";
+  if ($("workerOcrText")) $("workerOcrText").value = text;
+  return parseWorkerRowsFromOcrText(text);
+}
+async function rowsFromWorkerPdf(file, status){
+  const [pdfjsLib, Tesseract] = await Promise.all([loadPdfJs(), loadTesseract()]);
+  status.textContent = "PDF를 이미지로 변환하는 중입니다...";
+  const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  let fullText = "";
+  for (let pageNo = 1; pageNo <= pdf.numPages; pageNo++) {
+    const page = await pdf.getPage(pageNo);
+    const viewport = page.getViewport({ scale: 2 });
+    const canvas = document.createElement("canvas");
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    const context = canvas.getContext("2d");
+    await page.render({ canvasContext: context, viewport }).promise;
+    status.textContent = `PDF OCR 인식 중입니다... ${pageNo}/${pdf.numPages}쪽`;
+    const result = await Tesseract.recognize(canvas, "kor+eng", {
+      preserve_interword_spaces: "1",
+      tessedit_pageseg_mode: "6",
+      logger: progress => {
+        if (progress.status === "recognizing text") {
+          status.textContent = `PDF OCR 인식 중입니다... ${pageNo}/${pdf.numPages}쪽 ${Math.round((progress.progress || 0) * 100)}%`;
+        }
+      }
+    });
+    fullText += "\n" + (result?.data?.text || "");
+  }
+  if ($("workerOcrText")) $("workerOcrText").value = fullText.trim();
+  return parseWorkerRowsFromOcrText(fullText);
+}
 async function importWorkerFile(file){
   if (!file) return;
   const status = $("workerImportStatus");
   status.textContent = "파일을 읽는 중입니다...";
+  if ($("workerOcrText")) $("workerOcrText").value = "";
   const lower = file.name.toLowerCase();
   try {
     let imported = { rows2025:[], rows2024:[] };
@@ -2085,8 +2490,23 @@ async function importWorkerFile(file){
       imported.i9Rows = rowsFromI9Sheet(sheet4);
     } else if (lower.endsWith(".csv") || lower.endsWith(".tsv")) {
       imported = rowsFromDelimitedText(await file.text());
+    } else if (/\.(png|jpe?g|webp|bmp)$/i.test(lower)) {
+      const imageImported = await rowsFromWorkerImage(file, status);
+      imported = imageImported.baseYear === 2024
+        ? { rows2025:[], rows2024:imageImported.rows }
+        : { rows2025:imageImported.rows, rows2024:[] };
+    } else if (lower.endsWith(".pdf")) {
+      const pdfImported = await rowsFromWorkerPdf(file, status);
+      imported = pdfImported.baseYear === 2024
+        ? { rows2025:[], rows2024:pdfImported.rows }
+        : { rows2025:pdfImported.rows, rows2024:[] };
     } else {
-      status.textContent = "PDF/이미지 자동 인식은 OCR 연결이 필요합니다. 우선 엑셀 검토표(.xlsx) 또는 CSV 파일을 올려주세요.";
+      status.textContent = "지원하지 않는 파일 형식입니다. 엑셀(.xlsx), CSV/TSV, PNG/JPG 이미지를 올려주세요.";
+      return;
+    }
+    const totalImportedRows = imported.rows2025.length + imported.rows2024.length + (imported.i4Rows?.length || 0) + (imported.i5Rows?.length || 0) + (imported.i9Rows?.length || 0);
+    if (!totalImportedRows) {
+      status.textContent = "인식된 근로자 행이 없습니다. 표의 성명과 생년월일이 선명하게 보이는 이미지인지 확인해주세요.";
       return;
     }
     if (imported.rows2025.length) renderWorkerRows("worker2025Body", imported.rows2025);
@@ -2195,7 +2615,7 @@ function getCurrentCompanySizeLabel(){
   const industry = $("industry").value;
   const sales2025 = num($("sales2025").value);
   const rule = INDUSTRY_RULES.find(x => x.name === industry);
-  if (!rule) return "";
+  if (!rule || rule.limit == null) return "";
   return sales2025 <= rule.limit ? "소기업" : "중기업";
 }
 function getCurrentCompanySizeKey(){
@@ -2230,6 +2650,10 @@ function updateCompanySize(){
   [...document.querySelectorAll('input[name="companySize"]')].forEach(r => r.checked = false);
   if (!rule) {
     $("companySizeText").textContent = "업종과 2025년 매출액 기준으로 기업규모를 자동 판단할 수 있습니다.";
+    return;
+  }
+  if (rule.limit == null) {
+    $("companySizeText").textContent = `${industry} 업종은 참고자료상 소기업 매출 기준이 없어 자동 판단하지 않습니다.`;
     return;
   }
   const size = sales2025 <= rule.limit ? "소기업" : "중기업";
@@ -2402,12 +2826,12 @@ function renderI4Rows(rows){
 }
 function ensureI4DefaultRow(){
   const rows = getI4Rows();
-  while (rows.length < 7) rows.push(createI4Row());
+  while (rows.length < 5) rows.push(createI4Row());
   renderI4Rows(rows);
 }
 function scoreIndicator4(count){
-  if (count >= 7) return 5;
-  if (count >= 5) return 4;
+  if (count >= 5) return 5;
+  if (count >= 4) return 4;
   if (count >= 3) return 3;
   if (count >= 2) return 2;
   if (count >= 1) return 1;
@@ -2428,6 +2852,73 @@ function updateIndicator4(){
 
 function createI5Row(data={}){ return { region:data.region||"", partner:data.partner||"", purpose:data.purpose||"", activity:data.activity||"", count:data.count||"" }; }
 function getI5Rows(){ return [...document.querySelectorAll("#i5TableBody tr")].map(tr => ({ region:tr.querySelector(".i5-region")?.value||"", partner:tr.querySelector(".i5-partner")?.value||"", purpose:tr.querySelector(".i5-purpose")?.value||"", activity:tr.querySelector(".i5-activity")?.value||"", count:tr.querySelector(".i5-count")?.value||"" })); }
+function normalizeI5Count(value){
+  const match = String(value || "").match(/\d+(?:\.\d+)?/);
+  return match ? match[0] : "";
+}
+function splitI5ChunkCells(chunk){
+  return String(chunk || "")
+    .replace(/\r/g, "")
+    .split(/\t|\n/)
+    .map(cell => cell.trim())
+    .filter(Boolean);
+}
+function parseI5PasteRows(text){
+  const normalized = String(text || "")
+    .replace(/\r/g, "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\t+/g, "\t")
+    .trim();
+  if (!normalized) return [];
+  const rows = [];
+  const countPattern = /연\s*\d+(?:\.\d+)?\s*회/g;
+  let start = 0;
+  let match;
+  while ((match = countPattern.exec(normalized)) !== null) {
+    const chunk = normalized.slice(start, match.index).trim();
+    const count = normalizeI5Count(match[0]);
+    start = match.index + match[0].length;
+    const cells = splitI5ChunkCells(chunk);
+    if (cells.length < 2) continue;
+    const region = cells[0] || "";
+    const partner = cells[1] || "";
+    let purpose = "";
+    let activity = "";
+    if (cells.length === 2) {
+      purpose = "";
+      activity = "";
+    } else if (cells.length === 3) {
+      purpose = cells[2];
+      activity = "";
+    } else if (cells.length === 4) {
+      purpose = cells[2];
+      activity = cells[3];
+    } else {
+      purpose = cells.slice(2, -1).join("\n");
+      activity = cells[cells.length - 1];
+    }
+    rows.push({
+      region,
+      partner,
+      purpose,
+      activity,
+      count
+    });
+  }
+  return rows.filter(row => row.region || row.partner || row.purpose || row.activity || row.count);
+}
+function applyI5Paste(){
+  const rows = parseI5PasteRows($("i5PasteText").value);
+  if (!rows.length) {
+    $("i5PasteStatus").textContent = "인식된 행이 없습니다. 복사 형식을 확인해주세요.";
+    return;
+  }
+  $("i5None").checked = false;
+  renderI5Rows(rows);
+  updateIndicator5();
+  saveData(false);
+  $("i5PasteStatus").textContent = `${rows.length}개 협력활동을 반영했습니다.`;
+}
 function renderI5Rows(rows){
   $("i5TableBody").innerHTML = "";
   rows.forEach((row, idx) => {
@@ -2449,12 +2940,12 @@ function renderI5Rows(rows){
 }
 function ensureI5DefaultRow(){
   const rows = getI5Rows();
-  while (rows.length < 5) rows.push(createI5Row());
+  while (rows.length < 7) rows.push(createI5Row());
   renderI5Rows(rows);
 }
 function scoreIndicator5(count){
-  if (count >= 5) return 5;
-  if (count >= 4) return 4;
+  if (count >= 7) return 5;
+  if (count >= 5) return 4;
   if (count >= 3) return 3;
   if (count >= 2) return 2;
   if (count >= 1) return 1;
@@ -2569,11 +3060,109 @@ function ensureI7DefaultRows(){
   if (!$("i7BoardBody").children.length) renderI7BoardRows([createI7BoardRow()]);
   if (!$("i7CoopBody").children.length) renderI7CoopRows([createI7CoopRow()]);
 }
+function normalizeI7Date(value){
+  const match = String(value || "").trim().match(/^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})$/);
+  if (!match) return "";
+  return `${match[1]}-${match[2].padStart(2, "0")}-${match[3].padStart(2, "0")}`;
+}
+function isI7DateToken(value){
+  return Boolean(normalizeI7Date(value));
+}
+function isI7ShareToken(value){
+  const normalized = String(value || "").trim();
+  return ["여", "유", "Y", "y", "예", "부", "무", "N", "n", "아니오"].includes(normalized);
+}
+function normalizeI7Share(value){
+  const normalized = String(value || "").trim();
+  return ["여", "유", "Y", "y", "예"].includes(normalized) ? "Y" : "N";
+}
+function parseI7BoardPasteRows(text){
+  const tokens = String(text || "")
+    .replace(/\r/g, "\n")
+    .split(/[\t\n]+/)
+    .map(token => token.trim())
+    .filter(Boolean);
+  const rows = [];
+  let index = 0;
+  while (index < tokens.length) {
+    const dateIndex = tokens.findIndex((token, offset) => offset >= index && isI7DateToken(token));
+    if (dateIndex <= index) break;
+    const org = tokens[dateIndex - 1] || "";
+    let cursor = dateIndex + 1;
+    let share = "";
+    if (isI7ShareToken(tokens[cursor])) {
+      share = normalizeI7Share(tokens[cursor]);
+      cursor += 1;
+      if (isI7ShareToken(tokens[cursor]) && /^[YN]$/.test(share)) cursor += 1;
+    }
+    const counts = [];
+    while (cursor < tokens.length && counts.length < 3) {
+      if (isI7DateToken(tokens[cursor])) break;
+      const numberMatch = String(tokens[cursor]).match(/-?\d+(?:\.\d+)?/);
+      if (numberMatch) counts.push(numberMatch[0]);
+      cursor += 1;
+    }
+    rows.push(createI7BoardRow({
+      org,
+      date: normalizeI7Date(tokens[dateIndex]),
+      share,
+      attend: counts[0] || "",
+      outside: counts[1] || "",
+      worker: counts[2] || ""
+    }));
+    index = Math.max(cursor, dateIndex + 1);
+  }
+  return rows;
+}
+function applyI7Paste(){
+  const rows = parseI7BoardPasteRows($("i7PasteText").value);
+  if (!rows.length) {
+    $("i7PasteStatus").textContent = "인식된 행이 없습니다. 복사 형식을 확인해주세요.";
+    return;
+  }
+  $("i7None").checked = false;
+  $("i7BoardEnabled").checked = true;
+  renderI7BoardRows(rows);
+  updateIndicator7();
+  saveData(false);
+  $("i7PasteStatus").textContent = `${rows.length}개 회의 실적을 반영했습니다.`;
+}
 function scoreIndicator7(part, shareRate, meetingCount){
   if (meetingCount < 2) return 0;
   const participationScore = part >= 60 ? 3 : part >= 40 ? 2 : 1;
-  const shareScore = shareRate >= 50 ? 2 : 1;
+  const shareScore = shareRate > 50 ? 2 : 1;
   return participationScore + shareScore;
+}
+function getI7OrgSummary(rows){
+  const names = [...new Set(rows.map(row => String(row.org || "").trim()).filter(Boolean))];
+  if (!names.length) return "주요 의사결정기구";
+  return names.join(", ");
+}
+function formatPercentSmart(value){
+  const rounded = Number(value || 0).toFixed(2);
+  return rounded.replace(/\.00$/, "").replace(/(\.\d)0$/, "$1");
+}
+function getI7MeetingHalf(dateValue){
+  const match = String(dateValue || "").match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return "";
+  const month = Number(match[2]);
+  if (month >= 1 && month <= 6) return "first";
+  if (month >= 7 && month <= 12) return "second";
+  return "";
+}
+function getI7MeetingDateRule(rows){
+  const datedRows = rows.filter(row => row.date);
+  const firstCount = datedRows.filter(row => getI7MeetingHalf(row.date) === "first").length;
+  const secondCount = datedRows.filter(row => getI7MeetingHalf(row.date) === "second").length;
+  const missingDate = rows.some(row => !row.date);
+  const invalidDate = datedRows.some(row => !getI7MeetingHalf(row.date));
+  return {
+    firstCount,
+    secondCount,
+    missingDate,
+    invalidDate,
+    ok: rows.length > 0 && !missingDate && !invalidDate && firstCount >= 1 && secondCount >= 1
+  };
 }
 function updateIndicator7(){
   const none = $("i7None").checked;
@@ -2602,11 +3191,14 @@ function updateIndicator7(){
     ...(coopEnabled ? cRows.filter(r=>r.org||r.date||r.share||r.total||r.attend) : [])
   ];
   const shareRate = activeRows.length ? activeRows.filter(r=>r.share==="Y").length / activeRows.length * 100 : 0;
-  const score = none ? 0 : scoreIndicator7(part, shareRate, activeRows.length);
-  $("i7ParticipationRate").textContent = part.toFixed(2);
-  $("i7ShareRate").textContent = shareRate.toFixed(2);
-  $("i7ParticipationText").textContent = `${part.toFixed(2)}%`;
-  $("i7ShareText").textContent = `${shareRate.toFixed(2)}%`;
+  const dateRule = getI7MeetingDateRule(activeRows);
+  const score = none || !dateRule.ok ? 0 : scoreIndicator7(part, shareRate, activeRows.length);
+  const partText = formatPercentSmart(part);
+  const shareText = formatPercentSmart(shareRate);
+  $("i7ParticipationRate").textContent = partText;
+  $("i7ShareRate").textContent = shareText;
+  $("i7ParticipationText").textContent = `${partText}%`;
+  $("i7ShareText").textContent = `${shareText}%`;
   $("i7MeetingCount").textContent = `${activeRows.length}회`;
   $("score7").textContent = score;
   if (none) {
@@ -2615,10 +3207,15 @@ function updateIndicator7(){
     $("i7Summary").textContent = "의사결정기구 유형을 선택해주세요."; $("i7Status").textContent = "작성 전";
   } else if (!activeRows.length) {
     $("i7Summary").textContent = "운영실적 없음"; $("i7Status").textContent = "작성 전";
-  } else if (activeRows.length < 2) {
-    $("i7Summary").textContent = "주요의사결정기구 운영 실적이 반기별 1회 미만입니다."; $("i7Status").textContent = "0점 기준";
+  } else if (dateRule.missingDate) {
+    $("i7Summary").textContent = "회의일자가 입력되지 않은 운영 실적이 있어 0점입니다."; $("i7Status").textContent = "0점 기준";
+  } else if (dateRule.invalidDate) {
+    $("i7Summary").textContent = "회의일자 형식을 확인해주세요."; $("i7Status").textContent = "0점 기준";
+  } else if (!dateRule.ok) {
+    $("i7Summary").textContent = `회의일자는 상반기 1회 이상, 하반기 1회 이상이 필수입니다. 현재 상반기 ${dateRule.firstCount}회, 하반기 ${dateRule.secondCount}회입니다.`; $("i7Status").textContent = "0점 기준";
   } else {
-    $("i7Summary").textContent = `의사결정기구 참가 비율 ${part.toFixed(2)}%, 회의결과 공유 비율 ${shareRate.toFixed(2)}%로 집계되었습니다.`; $("i7Status").textContent = "작성됨";
+    const orgName = getI7OrgSummary(activeRows);
+    $("i7Summary").textContent = `${orgName}를 ${activeRows.length}회 개최하였으며 이해관계자의 주요 의사결정기구 실제 참여비율은 ${partText}%, 임직원 대상 결과 공유 활동(공유방법) 횟수 비율은 ${shareText}%로 확인됨`; $("i7Status").textContent = "작성됨";
   }
 }
 
@@ -3087,11 +3684,11 @@ function getSupplementText(indicatorNo, row){
   if (indicatorNo === 3) return "내부운영/외부운영 사회적가치 등급 선택 및 관련 증빙 보완";
   if (indicatorNo === 4) {
     const count = getI4Rows().filter(r => r.type || r.partner || r.activity || r.count).length;
-    return `사회연대경제기업 협력활동 증빙 ${Math.max(0, 7 - count)}건 보완 필요`;
+    return `사회연대경제기업 협력활동 증빙 ${Math.max(0, 5 - count)}건 보완 필요`;
   }
   if (indicatorNo === 5) {
     const count = getI5Rows().filter(r => r.region || r.partner || r.purpose || r.activity || r.count).length;
-    return `지역사회 협력활동 증빙 ${Math.max(0, 5 - count)}건 보완 필요`;
+    return `지역사회 협력활동 증빙 ${Math.max(0, 7 - count)}건 보완 필요`;
   }
   const defaults = {
     6:"사회적 환원 노력도 증빙(지출 내역, 협력·서비스 제공 자료 등)",
@@ -3572,6 +4169,11 @@ document.addEventListener("change", e => {
 $("newCompanyBtn").addEventListener("click", createNewCompany);
 $("backToDashboardBtn").addEventListener("click", showDashboard);
 $("exportCompaniesBtn").addEventListener("click", exportCompaniesCsv);
+$("applyCompanyPasteBtn").addEventListener("click", applyCompanyPaste);
+$("clearCompanyPasteBtn").addEventListener("click", () => {
+  $("companyPasteText").value = "";
+  $("companyPasteStatus").textContent = "붙여넣기 대기 중";
+});
 $("companyListBody").addEventListener("click", e => {
   const button = e.target.closest("button[data-action]");
   if (!button) return;
@@ -3600,13 +4202,27 @@ $("i3SampleBtn").addEventListener("click", fillI3Sample);
 $("i3ClearBtn").addEventListener("click", clearI3Sample);
 $("worker2025AddBtn").addEventListener("click", () => { const rows = getWorkerRows("worker2025Body"); rows.push(createWorkerRow()); renderWorkerRows("worker2025Body", rows); refreshAll(); saveData(false); });
 $("worker2024AddBtn").addEventListener("click", () => { const rows = getWorkerRows("worker2024Body"); rows.push(createWorkerRow()); renderWorkerRows("worker2024Body", rows); refreshAll(); saveData(false); });
-$("workerPdfFile").addEventListener("change", e => importWorkerFile(e.target.files?.[0]));
+$("applyWorkerPasteBtn").addEventListener("click", applyWorkerPaste);
+$("clearWorkerPasteBtn").addEventListener("click", () => {
+  $("workerPasteText").value = "";
+  $("workerPasteStatus").textContent = "붙여넣기 대기 중";
+});
 $("i4AddRowBtn").addEventListener("click", () => { const rows = getI4Rows(); rows.push(createI4Row()); renderI4Rows(rows); updateIndicator4(); saveData(false); });
 $("i5AddRowBtn").addEventListener("click", () => { const rows = getI5Rows(); rows.push(createI5Row()); renderI5Rows(rows); updateIndicator5(); saveData(false); });
+$("applyI5PasteBtn").addEventListener("click", applyI5Paste);
+$("clearI5PasteBtn").addEventListener("click", () => {
+  $("i5PasteText").value = "";
+  $("i5PasteStatus").textContent = "붙여넣기 대기 중";
+});
 $("i6AddReinvestBtn").addEventListener("click", () => { const rows = getI6Rows("i6ReinvestBody"); rows.push(createI6Row()); renderI6Rows("i6ReinvestBody", rows); updateIndicator6(); saveData(false); });
 $("i6AddServiceBtn").addEventListener("click", () => { const rows = getI6Rows("i6ServiceBody"); rows.push(createI6Row()); renderI6Rows("i6ServiceBody", rows); updateIndicator6(); saveData(false); });
 $("i7AddBoardBtn").addEventListener("click", () => { const rows = getI7Rows("i7BoardBody"); rows.push(createI7BoardRow()); renderI7BoardRows(rows); updateIndicator7(); saveData(false); });
 $("i7AddCoopBtn").addEventListener("click", () => { const rows = getI7Rows("i7CoopBody"); rows.push(createI7CoopRow()); renderI7CoopRows(rows); updateIndicator7(); saveData(false); });
+$("applyI7PasteBtn").addEventListener("click", applyI7Paste);
+$("clearI7PasteBtn").addEventListener("click", () => {
+  $("i7PasteText").value = "";
+  $("i7PasteStatus").textContent = "붙여넣기 대기 중";
+});
 $("i9AddRowBtn").addEventListener("click", () => { const rows = getI9Rows(); rows.push(createI9Row()); renderI9Rows(rows); updateIndicator9(); saveData(false); });
 
 buildIndustryOptions();
