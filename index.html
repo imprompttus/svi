@@ -547,9 +547,156 @@
       font-size:11.5px;
       line-height:1.45;
     }
+    .is-hidden{display:none !important}
+    .dashboard{
+      max-width:1180px;
+      margin:0 auto;
+      min-height:100vh;
+      padding:28px 18px 42px;
+    }
+    .dashboard-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:18px;
+      margin-bottom:18px;
+    }
+    .dashboard-title{
+      margin:0;
+      font-size:28px;
+      font-weight:900;
+      color:var(--navy);
+      letter-spacing:0;
+    }
+    .dashboard-sub{
+      margin-top:7px;
+      color:var(--muted);
+      font-size:14px;
+    }
+    .dashboard-actions{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    .dashboard-card{
+      background:rgba(255,255,255,.9);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .dashboard-toolbar{
+      display:flex;
+      gap:10px;
+      padding:16px;
+      border-bottom:1px solid var(--line);
+      background:#f8fbff;
+    }
+    .dashboard-search{
+      flex:1;
+      min-width:220px;
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:11px 12px;
+      font-size:14px;
+      outline:none;
+      background:#fff;
+    }
+    .dashboard-summary{
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+      padding:16px;
+      border-bottom:1px solid var(--line);
+    }
+    .summary-tile{
+      border:1px solid #dfe8f3;
+      background:#fff;
+      border-radius:12px;
+      padding:12px;
+    }
+    .summary-tile span{
+      display:block;
+      font-size:12px;
+      color:var(--muted);
+      font-weight:800;
+      margin-bottom:6px;
+    }
+    .summary-tile strong{
+      font-size:22px;
+      color:#1550aa;
+      font-weight:900;
+    }
+    .company-table{
+      width:100%;
+      border-collapse:collapse;
+    }
+    .company-table th,
+    .company-table td{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      text-align:left;
+      font-size:13px;
+      vertical-align:middle;
+    }
+    .company-table th{
+      background:#f1f6fc;
+      color:#1c314d;
+      font-weight:900;
+    }
+    .company-table tr:hover td{background:#fbfdff}
+    .company-name-cell{font-weight:900;color:#142235}
+    .company-meta{font-size:12px;color:var(--muted);margin-top:4px}
+    .company-actions{
+      display:flex;
+      gap:6px;
+      justify-content:flex-end;
+      flex-wrap:wrap;
+    }
+    .mini-btn{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:10px;
+      padding:7px 9px;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      color:#173a5e;
+    }
+    .mini-btn.primary{
+      border-color:#1f4f82;
+      background:#1f4f82;
+      color:#fff;
+    }
+    .mini-btn.danger{
+      color:#b42318;
+      border-color:#f0c5c0;
+    }
+    .empty-companies{
+      padding:42px 16px;
+      text-align:center;
+      color:var(--muted);
+    }
+    .app-company-bar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-bottom:1px solid var(--line);
+      background:#f8fbff;
+      font-size:13px;
+      color:#24415f;
+      font-weight:800;
+    }
+    .app-company-bar strong{color:#1550aa}
 
     @media (max-width: 1100px){
       .wrap{grid-template-columns:1fr}
+      .dashboard-head{align-items:stretch;flex-direction:column}
+      .dashboard-actions{justify-content:flex-start}
+      .dashboard-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
       .sidebar{position:relative;top:0}
       .step-list{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;max-height:none}
       .form-grid-3,.form-grid-2,.biz-split,.addr-split,.i3-mini-grid,.i3-cell-wrap,.inline-2,.result-grid,.result-kpis{grid-template-columns:1fr}
@@ -569,13 +716,57 @@
   </style>
 </head>
 <body>
-  <div class="wrap">
+  <div class="dashboard" id="dashboardView">
+    <div class="dashboard-head">
+      <div>
+        <h1 class="dashboard-title">SVI 기업 진단 관리</h1>
+        <div class="dashboard-sub">기업별 SVI 진단을 저장하고, 총점과 등급을 한 화면에서 확인합니다.</div>
+      </div>
+      <div class="dashboard-actions">
+        <button class="btn primary" id="newCompanyBtn" type="button">기업 추가</button>
+        <button class="btn" id="exportCompaniesBtn" type="button">전체 목록 CSV</button>
+      </div>
+    </div>
+    <div class="dashboard-card">
+      <div class="dashboard-summary">
+        <div class="summary-tile"><span>등록 기업</span><strong id="dashCompanyCount">0</strong></div>
+        <div class="summary-tile"><span>평균 점수</span><strong id="dashAvgScore">0</strong></div>
+        <div class="summary-tile"><span>최고 점수</span><strong id="dashBestScore">0</strong></div>
+        <div class="summary-tile"><span>보완 필요</span><strong id="dashNeedCount">0</strong></div>
+      </div>
+      <div class="dashboard-toolbar">
+        <input class="dashboard-search" id="companySearch" type="search" placeholder="기업명, 대표자명, 인증번호 검색">
+      </div>
+      <div class="table-wrap">
+        <table class="company-table">
+          <thead>
+            <tr>
+              <th>기업</th>
+              <th style="width:14%;">사회적목적</th>
+              <th style="width:12%;">총점</th>
+              <th style="width:12%;">등급</th>
+              <th style="width:16%;">최근 수정</th>
+              <th style="width:22%;text-align:right;">관리</th>
+            </tr>
+          </thead>
+          <tbody id="companyListBody"></tbody>
+        </table>
+      </div>
+      <div class="empty-companies is-hidden" id="emptyCompanies">아직 등록된 기업이 없습니다. `기업 추가`를 눌러 첫 진단을 시작하세요.</div>
+    </div>
+  </div>
+
+  <div class="wrap is-hidden" id="appView">
     <aside class="sidebar">
       <div class="sidebar-top">SVI 진단</div>
       <ul class="step-list" id="stepList"></ul>
     </aside>
 
     <main class="panel">
+      <div class="app-company-bar">
+        <div>현재 기업: <strong id="activeCompanyLabel">새 기업</strong></div>
+        <button class="mini-btn" id="backToDashboardBtn" type="button">기업 목록</button>
+      </div>
       <div class="panel-head">
         <div class="panel-head-title">
           <span class="panel-head-badge">✓</span>
@@ -1207,7 +1398,9 @@
 
 <script>
 const STORAGE_KEY = "svi_measurement_tool_v1";
+const COMPANY_STORE_KEY = "svi_company_records_v1";
 let currentStep = 0;
+let activeCompanyId = null;
 
 const steps = [
   { key: "0", title: "기업정보", panelTitle: "기업정보 입력" },
@@ -2981,6 +3174,181 @@ function renderResults(){
   renderPrintReport(rows, total, grade);
 }
 
+function makeCompanyId(){
+  return `company_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+function getCompanies(){
+  try {
+    const parsed = JSON.parse(localStorage.getItem(COMPANY_STORE_KEY) || "[]");
+    return Array.isArray(parsed) ? parsed : [];
+  } catch(e) {
+    return [];
+  }
+}
+function setCompanies(companies){
+  localStorage.setItem(COMPANY_STORE_KEY, JSON.stringify(companies));
+}
+function getCurrentScoreSummary(){
+  const rows = computeResultScores();
+  const total = rows.reduce((sum, row) => sum + Number(row.score || 0), 0);
+  const missing = rows.filter(row => Number(row.score || 0) < Number(row.max || 0)).length;
+  return { total, grade:getGradeByScore(total), missing };
+}
+function getCompanyMetaFromData(data, fallbackId){
+  return {
+    id:data.id || fallbackId || makeCompanyId(),
+    name:(data.companyName || "").trim() || "새 기업",
+    ceo:(data.ceoName || "").trim(),
+    certNo:(data.certNo || "").trim(),
+    socialPurpose:data.socialPurpose || "-",
+    total:Number(data.totalScore || 0),
+    grade:data.grade || getGradeByScore(Number(data.totalScore || 0)),
+    missing:Number(data.missingCount || 14),
+    updatedAt:data.updatedAt || new Date().toISOString(),
+    data
+  };
+}
+function upsertActiveCompany(manual=false){
+  if (!activeCompanyId) return;
+  const data = collectData();
+  const summary = getCurrentScoreSummary();
+  data.totalScore = summary.total;
+  data.grade = summary.grade;
+  data.missingCount = summary.missing;
+  data.updatedAt = new Date().toISOString();
+  data.id = activeCompanyId;
+  const companies = getCompanies();
+  const index = companies.findIndex(company => company.id === activeCompanyId);
+  const record = getCompanyMetaFromData(data, activeCompanyId);
+  if (index >= 0) companies[index] = record;
+  else companies.unshift(record);
+  setCompanies(companies);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  if ($("activeCompanyLabel")) $("activeCompanyLabel").textContent = record.name;
+  if (manual) renderDashboard();
+}
+function formatDateTime(value){
+  if (!value) return "-";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "-";
+  const pad = value => String(value).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+function renderDashboard(){
+  const search = ($("companySearch")?.value || "").trim().toLowerCase();
+  const companies = getCompanies().sort((a,b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
+  const filtered = companies.filter(company => {
+    const haystack = `${company.name || ""} ${company.ceo || ""} ${company.certNo || ""} ${company.socialPurpose || ""}`.toLowerCase();
+    return !search || haystack.includes(search);
+  });
+  const totalScore = companies.reduce((sum, company) => sum + Number(company.total || 0), 0);
+  const bestScore = companies.reduce((best, company) => Math.max(best, Number(company.total || 0)), 0);
+  $("dashCompanyCount").textContent = companies.length;
+  $("dashAvgScore").textContent = companies.length ? formatScoreValue(totalScore / companies.length) : "0";
+  $("dashBestScore").textContent = companies.length ? formatScoreValue(bestScore) : "0";
+  $("dashNeedCount").textContent = companies.filter(company => Number(company.missing || 0) > 0).length;
+  $("emptyCompanies").classList.toggle("is-hidden", filtered.length > 0);
+  $("companyListBody").innerHTML = filtered.map(company => `
+    <tr>
+      <td>
+        <div class="company-name-cell">${escapeHtml(company.name || "새 기업")}</div>
+        <div class="company-meta">대표자 ${escapeHtml(company.ceo || "-")} · 인증번호 ${escapeHtml(company.certNo || "-")}</div>
+      </td>
+      <td>${escapeHtml(company.socialPurpose || "-")}</td>
+      <td><strong>${formatScoreValue(company.total || 0)}</strong> / 100</td>
+      <td><span class="grade-badge ${getGradeClass(company.grade || "취약")}">${escapeHtml(company.grade || "취약")}</span></td>
+      <td>${formatDateTime(company.updatedAt)}</td>
+      <td>
+        <div class="company-actions">
+          <button class="mini-btn primary" type="button" data-action="open" data-id="${company.id}">수정</button>
+          <button class="mini-btn" type="button" data-action="result" data-id="${company.id}">결과</button>
+          <button class="mini-btn danger" type="button" data-action="delete" data-id="${company.id}">삭제</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
+}
+function showDashboard(){
+  if (activeCompanyId) saveData(false);
+  activeCompanyId = null;
+  $("dashboardView").classList.remove("is-hidden");
+  $("appView").classList.add("is-hidden");
+  renderDashboard();
+}
+function showApp(){
+  $("dashboardView").classList.add("is-hidden");
+  $("appView").classList.remove("is-hidden");
+  if ($("activeCompanyLabel")) $("activeCompanyLabel").textContent = $("companyName").value.trim() || "새 기업";
+}
+function resetForm(){
+  document.querySelectorAll(".panel input, .panel textarea, .panel select").forEach(el => {
+    if (el.type === "file") return;
+    if (el.type === "checkbox" || el.type === "radio") el.checked = false;
+    else el.value = "";
+  });
+  currentStep = 0;
+  renderWorkerRows("worker2025Body", [createWorkerRow()]);
+  renderWorkerRows("worker2024Body", [createWorkerRow()]);
+  renderI4Rows([createI4Row()]);
+  renderI5Rows([createI5Row()]);
+  renderI6Rows("i6ReinvestBody",[createI6Row()]);
+  renderI6Rows("i6ServiceBody",[createI6Row()]);
+  renderI7BoardRows([createI7BoardRow()]);
+  renderI7CoopRows([createI7CoopRow()]);
+  renderI9Rows([createI9Row()]);
+}
+function openCompany(id, stepKey=null){
+  const record = getCompanies().find(company => company.id === id);
+  if (!record) return;
+  resetForm();
+  activeCompanyId = id;
+  applyData(record.data || {});
+  if (stepKey) currentStep = getStepIndexByKey(stepKey);
+  showApp();
+  refreshAll();
+  renderStep();
+}
+function createNewCompany(){
+  resetForm();
+  activeCompanyId = makeCompanyId();
+  currentStep = 0;
+  showApp();
+  refreshAll();
+  renderStep();
+  saveData(true);
+}
+function deleteCompany(id){
+  const record = getCompanies().find(company => company.id === id);
+  const name = record?.name || "선택한 기업";
+  if (!confirm(`${name} 진단 기록을 삭제할까요?`)) return;
+  setCompanies(getCompanies().filter(company => company.id !== id));
+  renderDashboard();
+}
+function exportCompaniesCsv(){
+  const companies = getCompanies();
+  const rows = [
+    ["기업명","대표자명","인증번호","사회적목적","총점","등급","보완필요지표수","최근수정일"],
+    ...companies.map(company => [
+      company.name || "",
+      company.ceo || "",
+      company.certNo || "",
+      company.socialPurpose || "",
+      formatScoreValue(company.total || 0),
+      company.grade || "",
+      company.missing || 0,
+      formatDateTime(company.updatedAt)
+    ])
+  ];
+  const csv = rows.map(row => row.map(cell => `"${String(cell).replace(/"/g,'""')}"`).join(",")).join("\r\n");
+  const blob = new Blob(["\ufeff" + csv], { type:"text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `svi_기업목록_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 function collectData(){
   return {
     currentStep,
@@ -3059,16 +3427,18 @@ function applyData(data){
 
 let saveTimer = null;
 function saveData(manual=false){
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(collectData()));
+  upsertActiveCompany(manual);
   $("saveStatus").textContent = manual ? "저장되었습니다." : "자동 저장 완료";
   updateMenuState();
 }
 function scheduleSave(){
+  if (!activeCompanyId) return;
   $("saveStatus").textContent = "입력 중... 자동 저장 예정";
   clearTimeout(saveTimer);
   saveTimer = setTimeout(() => saveData(false), 250);
 }
 function refreshAll(){
+  if (!activeCompanyId) return;
   setupMoneyInputs();
   updateWorkerInfo();
   syncFinancialIndicatorsFromCompanyInfo();
@@ -3182,6 +3552,10 @@ function fillSample(){
   $("i14ResultScore").value = 4;
 }
 document.addEventListener("input", e => {
+  if (e.target.closest("#dashboardView")) {
+    if (e.target.id === "companySearch") renderDashboard();
+    return;
+  }
   const tag = e.target.tagName;
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
     formatMoneyInput(e.target);
@@ -3190,8 +3564,21 @@ document.addEventListener("input", e => {
   }
 });
 document.addEventListener("change", e => {
+  if (e.target.closest("#dashboardView")) return;
   const tag = e.target.tagName;
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") refreshAll();
+});
+
+$("newCompanyBtn").addEventListener("click", createNewCompany);
+$("backToDashboardBtn").addEventListener("click", showDashboard);
+$("exportCompaniesBtn").addEventListener("click", exportCompaniesCsv);
+$("companyListBody").addEventListener("click", e => {
+  const button = e.target.closest("button[data-action]");
+  if (!button) return;
+  const id = button.dataset.id;
+  if (button.dataset.action === "delete") deleteCompany(id);
+  else if (button.dataset.action === "result") openCompany(id, "15");
+  else openCompany(id);
 });
 
 $("prevBtn").addEventListener("click", () => { if (currentStep>0){ currentStep--; renderStep(); saveData(false);} });
@@ -3235,16 +3622,27 @@ compactIndicatorPanels();
 hideMemoFields();
 setupMoneyInputs();
 
-const saved = localStorage.getItem(STORAGE_KEY);
-if (saved) {
-  try { applyData(JSON.parse(saved)); } catch(e) { console.error(e); }
+function migrateSingleRecordIfNeeded(){
+  if (getCompanies().length) return;
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (!saved) return;
+  try {
+    const data = JSON.parse(saved);
+    if (!data || !Object.keys(data).length) return;
+    const record = getCompanyMetaFromData({
+      ...data,
+      totalScore:data.totalScore || 0,
+      grade:data.grade || getGradeByScore(Number(data.totalScore || 0)),
+      missingCount:data.missingCount || 14,
+      updatedAt:data.updatedAt || new Date().toISOString()
+    });
+    setCompanies([record]);
+  } catch(e) {
+    console.error(e);
+  }
 }
-ensureWorkerDefaultRows();
-ensureI4DefaultRow();
-ensureI5DefaultRow();
-refreshAll();
-renderStep();
-saveData(false);
+migrateSingleRecordIfNeeded();
+renderDashboard();
 </script>
 </body>
 </html>
