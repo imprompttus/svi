@@ -908,22 +908,34 @@
           <div class="guide-row">
             <div>2025년 및 2024년 유급근로자 정보를 입력합니다. 입력된 값은 기업정보의 고용현황과 지표 3의 취약계층 고용비율 및 평균시급에 자동 반영됩니다.</div>
           </div>
-          <div class="paste-import">
-            <div class="paste-import-head">
-              <div>
-                <div class="paste-import-title">근로자정보 붙여넣기</div>
-                <div class="hint">엑셀에서 No, 취약계층 유무, 유급근로자, 주 근로시간, 12월 근무시간, 12월 급여 표를 그대로 복사해 붙여넣으세요.</div>
+          <div class="form-grid-2">
+            <div class="paste-import">
+              <div class="paste-import-head">
+                <div>
+                  <div class="paste-import-title">2025 근로자정보 붙여넣기</div>
+                  <div class="hint">엑셀에서 No, 취약계층 유무, 유급근로자, 주 근로시간, 12월 근무시간, 12월 급여 표를 그대로 복사해 붙여넣으세요.</div>
+                </div>
+              </div>
+              <textarea id="workerPasteText2025" placeholder="예) 1    O    공일택    40    173.60    2,400,000"></textarea>
+              <div class="paste-actions">
+                <button class="btn primary" id="applyWorkerPasteBtn2025" type="button">2025 근로자 반영</button>
+                <button class="btn" id="clearWorkerPasteBtn2025" type="button">내용 지우기</button>
+                <span class="paste-status" id="workerPasteStatus2025">붙여넣기 대기 중</span>
               </div>
             </div>
-            <textarea id="workerPasteText" placeholder="예) 1    O    공일택    40    173.60    2,400,000"></textarea>
-            <div class="paste-actions">
-              <select id="workerPasteYear" style="height:38px;border:1px solid var(--line);border-radius:8px;padding:0 10px;">
-                <option value="2025">2025년 유급근로자</option>
-                <option value="2024">2024년 유급근로자</option>
-              </select>
-              <button class="btn primary" id="applyWorkerPasteBtn" type="button">근로자정보 반영</button>
-              <button class="btn" id="clearWorkerPasteBtn" type="button">내용 지우기</button>
-              <span class="paste-status" id="workerPasteStatus">붙여넣기 대기 중</span>
+            <div class="paste-import">
+              <div class="paste-import-head">
+                <div>
+                  <div class="paste-import-title">2024 근로자정보 붙여넣기</div>
+                  <div class="hint">2024년 유급근로자 엑셀 표를 그대로 복사해 붙여넣으면 아래 2024년 표에 반영됩니다.</div>
+                </div>
+              </div>
+              <textarea id="workerPasteText2024" placeholder="예) 1    O    공일택    40    173.60    2,400,000"></textarea>
+              <div class="paste-actions">
+                <button class="btn primary" id="applyWorkerPasteBtn2024" type="button">2024 근로자 반영</button>
+                <button class="btn" id="clearWorkerPasteBtn2024" type="button">내용 지우기</button>
+                <span class="paste-status" id="workerPasteStatus2024">붙여넣기 대기 중</span>
+              </div>
             </div>
           </div>
 
@@ -2276,17 +2288,17 @@ function parseWorkerPasteRows(text){
   });
   return rows;
 }
-function applyWorkerPaste(){
-  const rows = parseWorkerPasteRows($("workerPasteText").value);
+function applyWorkerPaste(year){
+  const rows = parseWorkerPasteRows($(`workerPasteText${year}`).value);
   if (!rows.length) {
-    $("workerPasteStatus").textContent = "인식된 근로자 행이 없습니다. 엑셀에서 표 범위를 다시 복사해주세요.";
+    $(`workerPasteStatus${year}`).textContent = "인식된 근로자 행이 없습니다. 엑셀에서 표 범위를 다시 복사해주세요.";
     return;
   }
-  const bodyId = $("workerPasteYear").value === "2024" ? "worker2024Body" : "worker2025Body";
+  const bodyId = year === "2024" ? "worker2024Body" : "worker2025Body";
   renderWorkerRows(bodyId, rows);
   refreshAll();
   saveData(false);
-  $("workerPasteStatus").textContent = `${$("workerPasteYear").value}년 근로자 ${rows.length}명을 반영했습니다.`;
+  $(`workerPasteStatus${year}`).textContent = `${year}년 근로자 ${rows.length}명을 반영했습니다.`;
 }
 function rowsFromSviWorkerSheet(sheetRows){
   const rows2025 = [];
@@ -4202,10 +4214,15 @@ $("i3SampleBtn").addEventListener("click", fillI3Sample);
 $("i3ClearBtn").addEventListener("click", clearI3Sample);
 $("worker2025AddBtn").addEventListener("click", () => { const rows = getWorkerRows("worker2025Body"); rows.push(createWorkerRow()); renderWorkerRows("worker2025Body", rows); refreshAll(); saveData(false); });
 $("worker2024AddBtn").addEventListener("click", () => { const rows = getWorkerRows("worker2024Body"); rows.push(createWorkerRow()); renderWorkerRows("worker2024Body", rows); refreshAll(); saveData(false); });
-$("applyWorkerPasteBtn").addEventListener("click", applyWorkerPaste);
-$("clearWorkerPasteBtn").addEventListener("click", () => {
-  $("workerPasteText").value = "";
-  $("workerPasteStatus").textContent = "붙여넣기 대기 중";
+$("applyWorkerPasteBtn2025").addEventListener("click", () => applyWorkerPaste("2025"));
+$("clearWorkerPasteBtn2025").addEventListener("click", () => {
+  $("workerPasteText2025").value = "";
+  $("workerPasteStatus2025").textContent = "붙여넣기 대기 중";
+});
+$("applyWorkerPasteBtn2024").addEventListener("click", () => applyWorkerPaste("2024"));
+$("clearWorkerPasteBtn2024").addEventListener("click", () => {
+  $("workerPasteText2024").value = "";
+  $("workerPasteStatus2024").textContent = "붙여넣기 대기 중";
 });
 $("i4AddRowBtn").addEventListener("click", () => { const rows = getI4Rows(); rows.push(createI4Row()); renderI4Rows(rows); updateIndicator4(); saveData(false); });
 $("i5AddRowBtn").addEventListener("click", () => { const rows = getI5Rows(); rows.push(createI5Row()); renderI5Rows(rows); updateIndicator5(); saveData(false); });
