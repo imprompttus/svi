@@ -563,6 +563,46 @@
       min-height:100vh;
       padding:28px 18px 42px;
     }
+    .login-view{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .login-card{
+      width:min(420px,100%);
+      background:rgba(255,255,255,.94);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:26px;
+    }
+    .login-title{
+      margin:0 0 8px;
+      color:var(--navy);
+      font-size:24px;
+      font-weight:900;
+      letter-spacing:0;
+    }
+    .login-sub{
+      margin:0 0 18px;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.55;
+    }
+    .login-actions{
+      display:flex;
+      gap:8px;
+      margin-top:12px;
+    }
+    .login-error{
+      min-height:18px;
+      margin-top:10px;
+      color:#b42318;
+      font-size:12px;
+      font-weight:800;
+    }
     .dashboard-head{
       display:flex;
       justify-content:space-between;
@@ -779,7 +819,22 @@
   </style>
 </head>
 <body>
-  <div class="dashboard" id="dashboardView">
+  <div class="login-view" id="loginView">
+    <div class="login-card">
+      <h1 class="login-title">SVI 기업 진단 관리</h1>
+      <p class="login-sub">관리자 비밀번호를 입력하면 기업 진단 목록을 확인하고 사이트를 이용할 수 있습니다.</p>
+      <div class="field">
+        <label>관리자 비밀번호</label>
+        <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="비밀번호 입력">
+      </div>
+      <div class="login-actions">
+        <button class="btn primary" id="adminLoginBtn" type="button">입장</button>
+      </div>
+      <div class="login-error" id="adminLoginError"></div>
+    </div>
+  </div>
+
+  <div class="dashboard is-hidden" id="dashboardView">
     <div class="dashboard-head">
       <div>
         <h1 class="dashboard-title">SVI 기업 진단 관리</h1>
@@ -1575,9 +1630,17 @@
     </section>
   </div>
 
+<script src="config.js"></script>
 <script>
 const STORAGE_KEY = "svi_measurement_tool_v1";
 const COMPANY_STORE_KEY = "svi_company_records_v1";
+const SUPABASE_TABLE = "svi_companies";
+const SUPABASE_URL = String(window.SVI_SUPABASE_URL || "").replace(/\/$/,"");
+const SUPABASE_ANON_KEY = String(window.SVI_SUPABASE_ANON_KEY || "");
+const ADMIN_PASSWORD = String(window.SVI_ADMIN_PASSWORD || "1127");
+const ADMIN_AUTH_KEY = "svi_admin_authenticated_v1";
+let companyCache = [];
+let companyCacheLoaded = false;
 let currentStep = 0;
 let activeCompanyId = null;
 
@@ -4116,7 +4179,10 @@ function renderResults(){
 function makeCompanyId(){
   return `company_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
 }
-function getCompanies(){
+function isDbEnabled(){
+  return Boolean(SUPABASE_URL && SUPABASE_ANON_KEY);
+}
+function getLocalCompanies(){
   try {
     const parsed = JSON.parse(localStorage.getItem(COMPANY_STORE_KEY) || "[]");
     return Array.isArray(parsed) ? parsed : [];
@@ -4124,8 +4190,105 @@ function getCompanies(){
     return [];
   }
 }
-function setCompanies(companies){
+function setLocalCompanies(companies){
   localStorage.setItem(COMPANY_STORE_KEY, JSON.stringify(companies));
+}
+function getCompanies(){
+  if (companyCacheLoaded) return companyCache;
+  companyCache = getLocalCompanies();
+  companyCacheLoaded = true;
+  return companyCache;
+}
+function setCompanies(companies){
+  companyCache = Array.isArray(companies) ? companies : [];
+  companyCacheLoaded = true;
+  setLocalCompanies(companyCache);
+}
+function supabaseHeaders(extra={}){
+  return {
+    apikey: SUPABASE_ANON_KEY,
+    Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    "Content-Type": "application/json",
+    ...extra
+  };
+}
+async function supabaseRequest(path, options={}){
+  if (!isDbEnabled()) throw new Error("Supabase 설정이 없습니다.");
+  const response = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    ...options,
+    headers:supabaseHeaders(options.headers || {})
+  });
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || `Supabase 요청 실패 (${response.status})`);
+  }
+  if (response.status === 204) return null;
+  return response.json();
+}
+function dbRowToCompany(row){
+  const data = row.data || {};
+  return {
+    id:row.id,
+    name:row.name || data.companyName || "새 기업",
+    ceo:row.ceo || data.ceoName || "",
+    orgType:row.org_type || data.orgType || "",
+    address:row.address || data.addrFull || "",
+    region:row.region || getRegionLabel(row.address || data.addrFull),
+    certNo:row.cert_no || data.certNo || "",
+    socialPurpose:row.social_purpose || data.socialPurpose || "-",
+    total:Number(row.total || data.totalScore || 0),
+    grade:row.grade || data.grade || getGradeByScore(Number(row.total || data.totalScore || 0)),
+    missing:Number(row.missing ?? data.missingCount ?? 14),
+    updatedAt:row.updated_at || data.updatedAt || new Date().toISOString(),
+    data:{...data, id:row.id}
+  };
+}
+function companyToDbRow(company){
+  const data = company.data || {};
+  return {
+    id:company.id,
+    name:company.name || data.companyName || "새 기업",
+    ceo:company.ceo || data.ceoName || "",
+    org_type:company.orgType || data.orgType || "",
+    address:company.address || data.addrFull || "",
+    region:company.region || getRegionLabel(company.address || data.addrFull),
+    cert_no:company.certNo || data.certNo || "",
+    social_purpose:company.socialPurpose || data.socialPurpose || "-",
+    total:Number(company.total || data.totalScore || 0),
+    grade:company.grade || data.grade || getGradeByScore(Number(company.total || data.totalScore || 0)),
+    missing:Number(company.missing ?? data.missingCount ?? 14),
+    updated_at:company.updatedAt || data.updatedAt || new Date().toISOString(),
+    data
+  };
+}
+async function loadCompaniesFromStore(){
+  if (!isDbEnabled()) {
+    setCompanies(getLocalCompanies());
+    return getCompanies();
+  }
+  try {
+    const rows = await supabaseRequest(`${SUPABASE_TABLE}?select=*&order=updated_at.desc`);
+    const companies = (rows || []).map(dbRowToCompany);
+    setCompanies(companies);
+    return companies;
+  } catch(e) {
+    console.error(e);
+    alert("DB 목록을 불러오지 못해 이 브라우저에 저장된 목록을 표시합니다. Supabase 설정과 테이블 권한을 확인해주세요.");
+    setCompanies(getLocalCompanies());
+    return getCompanies();
+  }
+}
+async function saveCompanyToDb(company){
+  if (!isDbEnabled()) return;
+  await supabaseRequest(`${SUPABASE_TABLE}?on_conflict=id`, {
+    method:"POST",
+    headers:{Prefer:"resolution=merge-duplicates"},
+    body:JSON.stringify(companyToDbRow(company))
+  });
+}
+async function deleteCompanyFromDb(id){
+  if (!isDbEnabled()) return;
+  await supabaseRequest(`${SUPABASE_TABLE}?id=eq.${encodeURIComponent(id)}`, { method:"DELETE" });
 }
 function getCurrentScoreSummary(){
   const rows = computeResultScores();
@@ -4178,6 +4341,13 @@ function upsertActiveCompany(manual=false){
   setCompanies(companies);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   if ($("activeCompanyLabel")) $("activeCompanyLabel").textContent = record.name;
+  if (manual) $("saveStatus").textContent = isDbEnabled() ? "DB 저장 중..." : "저장되었습니다.";
+  saveCompanyToDb(record).then(() => {
+    if (manual && $("saveStatus")) $("saveStatus").textContent = isDbEnabled() ? "DB에 저장되었습니다." : "저장되었습니다.";
+  }).catch(e => {
+    console.error(e);
+    if ($("saveStatus")) $("saveStatus").textContent = "DB 저장 실패: 이 브라우저에는 임시 저장되었습니다.";
+  });
   if (manual) renderDashboard();
 }
 function formatDateTime(value){
@@ -4187,7 +4357,8 @@ function formatDateTime(value){
   const pad = value => String(value).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
-function renderDashboard(){
+async function renderDashboard(forceReload=false){
+  if (forceReload || !companyCacheLoaded) await loadCompaniesFromStore();
   const search = ($("companySearch")?.value || "").trim().toLowerCase();
   const companies = getCompanies().sort((a,b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
   const filtered = companies.filter(company => {
@@ -4227,7 +4398,7 @@ function showDashboard(){
   activeCompanyId = null;
   $("dashboardView").classList.remove("is-hidden");
   $("appView").classList.add("is-hidden");
-  renderDashboard();
+  renderDashboard(true);
 }
 function showApp(){
   $("dashboardView").classList.add("is-hidden");
@@ -4253,7 +4424,8 @@ function resetForm(){
   $("i8TotalPay").dataset.manual = "false";
   $("i8TotalHours").dataset.manual = "false";
 }
-function openCompany(id, stepKey=null){
+async function openCompany(id, stepKey=null){
+  if (!companyCacheLoaded) await loadCompaniesFromStore();
   const record = getCompanies().find(company => company.id === id);
   if (!record) return;
   resetForm();
@@ -4273,11 +4445,17 @@ function createNewCompany(){
   renderStep();
   saveData(true);
 }
-function deleteCompany(id){
+async function deleteCompany(id){
   const record = getCompanies().find(company => company.id === id);
   const name = record?.name || "선택한 기업";
   if (!confirm(`${name} 진단 기록을 삭제할까요?`)) return;
   setCompanies(getCompanies().filter(company => company.id !== id));
+  try {
+    await deleteCompanyFromDb(id);
+  } catch(e) {
+    console.error(e);
+    alert("DB 삭제에 실패했습니다. Supabase 설정과 권한을 확인해주세요.");
+  }
   renderDashboard();
 }
 function exportCompaniesCsv(){
@@ -4303,6 +4481,34 @@ function exportCompaniesCsv(){
   a.download = `svi_기업목록_${new Date().toISOString().slice(0,10)}.csv`;
   a.click();
   URL.revokeObjectURL(url);
+}
+function isAdminAuthenticated(){
+  return sessionStorage.getItem(ADMIN_AUTH_KEY) === "true";
+}
+async function unlockAdmin(){
+  const input = $("adminPasswordInput");
+  const error = $("adminLoginError");
+  if (!input || input.value !== ADMIN_PASSWORD) {
+    if (error) error.textContent = "비밀번호가 맞지 않습니다.";
+    if (input) input.focus();
+    return;
+  }
+  sessionStorage.setItem(ADMIN_AUTH_KEY, "true");
+  if (error) error.textContent = "";
+  $("loginView").classList.add("is-hidden");
+  $("dashboardView").classList.remove("is-hidden");
+  await initApp();
+}
+async function requireAdminBeforeStart(){
+  if (isAdminAuthenticated()) {
+    $("loginView").classList.add("is-hidden");
+    $("dashboardView").classList.remove("is-hidden");
+    await initApp();
+    return;
+  }
+  $("loginView").classList.remove("is-hidden");
+  $("dashboardView").classList.add("is-hidden");
+  setTimeout(() => $("adminPasswordInput")?.focus(), 0);
 }
 
 function collectData(){
@@ -4539,6 +4745,10 @@ document.addEventListener("change", e => {
   }
 });
 
+$("adminLoginBtn").addEventListener("click", unlockAdmin);
+$("adminPasswordInput").addEventListener("keydown", e => {
+  if (e.key === "Enter") unlockAdmin();
+});
 $("newCompanyBtn").addEventListener("click", createNewCompany);
 $("backToDashboardBtn").addEventListener("click", showDashboard);
 $("exportCompaniesBtn").addEventListener("click", exportCompaniesCsv);
@@ -4633,8 +4843,17 @@ compactIndicatorPanels();
 hideMemoFields();
 setupMoneyInputs();
 
-function migrateSingleRecordIfNeeded(){
+async function migrateSingleRecordIfNeeded(){
+  const localCompanies = getLocalCompanies();
+  if (isDbEnabled()) await loadCompaniesFromStore();
+  else setCompanies(localCompanies);
   if (getCompanies().length) return;
+  if (isDbEnabled() && localCompanies.length) {
+    setCompanies(localCompanies);
+    await Promise.allSettled(localCompanies.map(company => saveCompanyToDb(company)));
+    await loadCompaniesFromStore();
+    return;
+  }
   const saved = localStorage.getItem(STORAGE_KEY);
   if (!saved) return;
   try {
@@ -4648,12 +4867,16 @@ function migrateSingleRecordIfNeeded(){
       updatedAt:data.updatedAt || new Date().toISOString()
     });
     setCompanies([record]);
+    if (isDbEnabled()) await saveCompanyToDb(record);
   } catch(e) {
     console.error(e);
   }
 }
-migrateSingleRecordIfNeeded();
-renderDashboard();
+async function initApp(){
+  await migrateSingleRecordIfNeeded();
+  await renderDashboard();
+}
+requireAdminBeforeStart();
 </script>
 </body>
 </html>
