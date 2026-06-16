@@ -397,7 +397,7 @@
     .i3-cell-wrap{grid-template-columns:1fr 1fr 1fr}
     .table-wrap{overflow:auto}
     .worker-actions{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0}
-    .worker-table-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+    .worker-table-grid{display:grid;grid-template-columns:minmax(620px,1.15fr) minmax(420px,.85fr);gap:14px;align-items:start}
     .worker-table-card{min-width:0}
     .worker-table-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0}
     .worker-table-head strong{font-size:14px}
@@ -406,10 +406,10 @@
     .worker-table-card table{font-size:12px}
     .worker-table-card input[type="text"],.worker-table-card input[type="number"]{font-size:12px;min-height:32px;padding:6px 8px;border-radius:8px}
     .worker-table-card input[type="checkbox"]{width:14px;height:14px}
-    .worker-summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:12px 0}
-    .worker-summary-card{border:1px solid #dbe4ef;background:#f8fbff;border-radius:10px;padding:10px;text-align:center}
-    .worker-summary-card span{display:block;font-size:11px;color:#64748b;font-weight:800;margin-bottom:4px}
-    .worker-summary-card strong{font-size:18px;color:#1550aa}
+    .worker-summary-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin:12px 0}
+    .worker-summary-card{border:1px solid #dbe4ef;background:#f8fbff;border-radius:10px;padding:8px;text-align:center}
+    .worker-summary-card span{display:block;font-size:10px;color:#64748b;font-weight:800;margin-bottom:4px}
+    .worker-summary-card strong{font-size:15px;color:#1550aa}
 
     .i8-head,.i10-head,.i11-head,.i12-head{font-size:16px;font-weight:900;margin-bottom:8px}
     .unit{font-size:12px;color:#667388;text-align:right;margin-top:-4px;margin-bottom:8px}
@@ -655,7 +655,19 @@
       font-weight:900;
     }
     .company-table tr:hover td{background:#fbfdff}
-    .company-name-cell{font-weight:900;color:#142235}
+    .company-title-line{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      min-width:0;
+    }
+    .company-no{
+      flex:0 0 auto;
+      color:#1f4f82;
+      font-weight:900;
+      font-size:13px;
+    }
+    .company-name-cell{font-weight:900;color:#142235;font-size:15px}
     .company-meta{font-size:12px;color:var(--muted);margin-top:4px}
     .company-actions{
       display:flex;
@@ -720,11 +732,15 @@
       font-size:15px;
     }
     .paste-import textarea{
-      min-height:150px;
+      min-height:74px;
+      max-height:120px;
       background:#fff;
       font-size:13px;
       line-height:1.5;
+      overflow:auto;
+      resize:vertical;
     }
+    #companyPasteText{min-height:120px;max-height:180px}
     .paste-actions{
       display:flex;
       gap:8px;
@@ -746,6 +762,7 @@
       .sidebar{position:relative;top:0}
       .step-list{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;max-height:none}
       .form-grid-3,.form-grid-2,.biz-split,.addr-split,.i3-mini-grid,.i3-cell-wrap,.inline-2,.result-grid,.result-kpis,.worker-table-grid{grid-template-columns:1fr}
+      .worker-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
       .company-size-block{max-width:none}
       .guide-row{flex-direction:column}
       .panel-body{padding:20px 16px 24px}
@@ -766,7 +783,7 @@
     <div class="dashboard-head">
       <div>
         <h1 class="dashboard-title">SVI 기업 진단 관리</h1>
-        <div class="dashboard-sub">기업별 SVI 진단을 저장하고, 총점과 등급을 한 화면에서 확인합니다.</div>
+        <div class="dashboard-sub">기업별 SVI 진단을 저장하고 관리합니다.</div>
       </div>
       <div class="dashboard-actions">
         <button class="btn primary" id="newCompanyBtn" type="button">기업 추가</button>
@@ -774,24 +791,14 @@
       </div>
     </div>
     <div class="dashboard-card">
-      <div class="dashboard-summary">
-        <div class="summary-tile"><span>등록 기업</span><strong id="dashCompanyCount">0</strong></div>
-        <div class="summary-tile"><span>평균 점수</span><strong id="dashAvgScore">0</strong></div>
-        <div class="summary-tile"><span>최고 점수</span><strong id="dashBestScore">0</strong></div>
-        <div class="summary-tile"><span>보완 필요</span><strong id="dashNeedCount">0</strong></div>
-      </div>
       <div class="dashboard-toolbar">
-        <input class="dashboard-search" id="companySearch" type="search" placeholder="기업명, 대표자명, 인증번호 검색">
+        <input class="dashboard-search" id="companySearch" type="search" placeholder="기업명, 대표자명, 조직유형, 지역 검색">
       </div>
       <div class="table-wrap">
         <table class="company-table">
           <thead>
             <tr>
               <th>기업</th>
-              <th style="width:14%;">사회적목적</th>
-              <th style="width:12%;">총점</th>
-              <th style="width:12%;">등급</th>
-              <th style="width:16%;">최근 수정</th>
               <th style="width:22%;text-align:right;">관리</th>
             </tr>
           </thead>
@@ -925,7 +932,7 @@
                   <div class="hint">엑셀에서 No, 취약계층 유무, 유급근로자, 주 근로시간, 12월 근무시간, 12월 급여 표를 그대로 복사해 붙여넣으세요.</div>
                 </div>
               </div>
-              <textarea id="workerPasteText2025" placeholder="예) 1    O    공일택    40    173.60    2,400,000"></textarea>
+              <textarea id="workerPasteText2025" placeholder="예) 1    O    홍길동    40    173.60    2,400,000"></textarea>
               <div class="paste-actions">
                 <button class="btn primary" id="applyWorkerPasteBtn2025" type="button">2025 근로자 반영</button>
                 <button class="btn" id="clearWorkerPasteBtn2025" type="button">내용 지우기</button>
@@ -939,7 +946,7 @@
                   <div class="hint">엑셀에서 No, 유급근로자, 주 근로시간, 12월 근무시간 표를 그대로 복사해 붙여넣으세요.</div>
                 </div>
               </div>
-              <textarea id="workerPasteText2024" placeholder="예) 1    공일택    40    173.60"></textarea>
+              <textarea id="workerPasteText2024" placeholder="예) 1    홍길동    40    173.60"></textarea>
               <div class="paste-actions">
                 <button class="btn primary" id="applyWorkerPasteBtn2024" type="button">2024 근로자 반영</button>
                 <button class="btn" id="clearWorkerPasteBtn2024" type="button">내용 지우기</button>
@@ -953,6 +960,8 @@
             <div class="worker-summary-card"><span>2025년 취약계층</span><strong id="weak2025Summary">0명</strong></div>
             <div class="worker-summary-card"><span>취약계층 고용비율</span><strong id="workerWeakRateSummary">0%</strong></div>
             <div class="worker-summary-card"><span>취약계층 평균시급</span><strong id="workerWeakWageSummary">0원</strong></div>
+            <div class="worker-summary-card"><span>12월 급여 합계</span><strong id="workerTotalPaySummary">0원</strong></div>
+            <div class="worker-summary-card"><span>총 근무시간 합계</span><strong id="workerTotalHoursSummary">0시간</strong></div>
           </div>
 
           <div class="worker-table-grid">
@@ -966,7 +975,7 @@
               </div>
               <div class="table-card table-wrap worker-table-body">
                 <table>
-                  <thead><tr><th style="width:38px;"></th><th style="width:44px;">No</th><th style="width:92px;">취약계층</th><th>유급근로자</th><th style="width:88px;">주 근로</th><th style="width:104px;">12월 시간</th><th style="width:116px;">12월 급여</th></tr></thead>
+                  <thead><tr><th style="width:30px;"></th><th style="width:36px;">No</th><th style="width:66px;">취약</th><th>유급근로자</th><th style="width:74px;">주 근로</th><th style="width:88px;">12월 시간</th><th style="width:104px;">12월 급여</th></tr></thead>
                   <tbody id="worker2025Body"></tbody>
                 </table>
               </div>
@@ -982,7 +991,7 @@
               </div>
               <div class="table-card table-wrap worker-table-body">
                 <table>
-                  <thead><tr><th style="width:38px;"></th><th style="width:44px;">No</th><th style="width:92px;">취약계층</th><th>유급근로자</th><th style="width:88px;">주 근로</th><th style="width:104px;">12월 시간</th><th style="width:116px;">12월 급여</th></tr></thead>
+                  <thead><tr><th style="width:30px;"></th><th style="width:36px;">No</th><th style="width:110px;">유급근로자</th><th style="width:86px;">주 근로</th><th style="width:104px;">12월 시간</th></tr></thead>
                   <tbody id="worker2024Body"></tbody>
                 </table>
               </div>
@@ -1115,13 +1124,15 @@
                     <input id="i3InternalScore" type="hidden" value="0">
                     <select id="i3InternalPurposeScore">
                       <option value="0">0점</option>
+                      <option value="1">1점</option>
                       <option value="2">2점</option>
                     </select>
+                    <div class="i3-auto-note" id="i3InternalPurposeScoreNote">자동/수동 점수</div>
                   </td>
                 </tr>
                 <tr id="i3CultureRow"><td class="i3-judge">사회적 목적 실현을 위한 기업내부 문화 형성<small>(참고 기준에 맞게 입력)</small></td><td><textarea id="i3Culture"></textarea></td></tr>
                 <tr><td class="i3-judge">근로자 보건 및 안전</td><td><textarea id="i3Safety"></textarea></td><td class="i3-score-cell"><select id="i3SafetyScore"><option value="0">0점</option><option value="1">1점</option></select></td></tr>
-                <tr><td class="i3-judge">고용의 질</td><td><textarea id="i3JobQuality"></textarea></td><td class="i3-score-cell"><select id="i3JobQualityScore"><option value="0">0점</option><option value="2">2점</option></select></td></tr>
+                <tr><td class="i3-judge">고용의 질</td><td><textarea id="i3JobQuality"></textarea></td><td class="i3-score-cell"><select id="i3JobQualityScore"><option value="0">0점</option><option value="1">1점</option><option value="2">2점</option></select></td></tr>
 
                 <tr>
                   <td class="i3-side" rowspan="5">외부 운영
@@ -1132,7 +1143,7 @@
                   <td class="sum-cell"><div class="i3-cell-wrap" style="gap:0;"><div>목적</div><div>대상</div><div>활동</div></div></td>
                   <td class="sum-cell">외부운영 점수</td>
                 </tr>
-                <tr><td class="i3-judge">제품·서비스 판매의 사회적가치</td><td><div class="i3-cell-wrap"><input id="i3SalePurpose" type="text"><input id="i3SaleTarget" type="text"><input id="i3SaleAction" type="text"></div></td><td class="i3-score-cell" rowspan="4"><select id="i3ExternalScore"><option value="0">- (0점)</option><option value="1">D (1점)</option><option value="2">D (2점)</option><option value="3">C (3점)</option><option value="4">C (4점)</option><option value="5">B (5점)</option><option value="6">B (6점)</option><option value="7">A (7점)</option><option value="8">A (8점)</option><option value="9">S (9점)</option><option value="10">S (10점)</option></select></td></tr>
+                <tr><td class="i3-judge">제품·서비스 판매의 사회적가치</td><td><div class="i3-cell-wrap"><input id="i3SalePurpose" type="text"><input id="i3SaleTarget" type="text"><input id="i3SaleAction" type="text"></div></td><td class="i3-score-cell" rowspan="4"><select id="i3ExternalScore"><option value="0">0점</option><option value="1">1점</option><option value="2">2점</option><option value="3">3점</option><option value="4">4점</option><option value="5">5점</option><option value="6">6점</option><option value="7">7점</option><option value="8">8점</option><option value="9">9점</option><option value="10">10점</option></select></td></tr>
                 <tr><td class="i3-judge">제품·서비스 생산의 사회적가치</td><td><div class="i3-cell-wrap"><input id="i3ProdPurpose" type="text"><input id="i3ProdTarget" type="text"><input id="i3ProdAction" type="text"></div></td></tr>
                 <tr><td class="i3-judge">이용자의 사회적가치</td><td><div class="i3-cell-wrap"><input id="i3UserPurpose" type="text"><input id="i3UserTarget" type="text"><input id="i3UserAction" type="text"></div></td></tr>
                 <tr><td class="i3-judge">기타 사회적가치</td><td><div class="i3-cell-wrap"><input id="i3EtcPurpose" type="text"><input id="i3EtcTarget" type="text"><input id="i3EtcAction" type="text"></div></td></tr>
@@ -1150,6 +1161,20 @@
         <!-- STEP 4 -->
         <section class="step-panel" data-step="4">
           <div class="guide-row"><div>사회적가치를 지향하는 사회연대경제기업과의 상호협력 활동수준을 확인합니다.</div></div>
+          <div class="paste-import">
+            <div class="paste-import-head">
+              <div>
+                <div class="paste-import-title">지표4 협력활동 붙여넣기</div>
+                <div class="hint">사회연대경제조직구분, 협력기관, 협력활동, 횟수 순서로 복사한 내용을 붙여넣으면 표에 자동 반영됩니다.</div>
+              </div>
+            </div>
+            <textarea id="i4PasteText" placeholder="예) 인증 사회적기업    소셜비즈니스디자인 협동조합    MOU 및 프로그램 운영    연 2회"></textarea>
+            <div class="paste-actions">
+              <button class="btn primary" id="applyI4PasteBtn" type="button">지표4 반영</button>
+              <button class="btn" id="clearI4PasteBtn" type="button">내용 지우기</button>
+              <span class="paste-status" id="i4PasteStatus">붙여넣기 대기 중</span>
+            </div>
+          </div>
           <label class="sub-check"><input type="checkbox" id="i4None"> 해당 없음(우리기업은 사회연대경제기업과의 협력 활동이 없습니다.)</label>
           <div class="topbar"><div></div><button class="sample-btn dark" id="i4AddRowBtn" type="button">+ 행추가</button></div>
           <div class="table-card"><div class="table-wrap" id="i4Wrap"><table class="i4-table"><thead><tr><th style="width:44px;"></th><th style="width:180px;">사회연대경제조직구분</th><th style="width:180px;">협력기관</th><th>협력활동</th><th style="width:90px;">횟수</th></tr></thead><tbody id="i4TableBody"></tbody></table></div></div>
@@ -1168,7 +1193,7 @@
                 <div class="hint">지역구분, 협력기관, 목적, 협력활동, 횟수 순서로 복사한 내용을 붙여넣으면 표에 자동 반영됩니다.</div>
               </div>
             </div>
-            <textarea id="i5PasteText" placeholder="예) 대구시 동구    동구진로진학지원센터    목적 내용    협력활동 내용    연 1회"></textarea>
+            <textarea id="i5PasteText" placeholder="예) 대구    북구청    물품납품    홍보물 외    연 2회"></textarea>
             <div class="paste-actions">
               <button class="btn primary" id="applyI5PasteBtn" type="button">지표5 반영</button>
               <button class="btn" id="clearI5PasteBtn" type="button">내용 지우기</button>
@@ -1188,15 +1213,15 @@
           <div class="guide-row"><div>사회적가치를 지향하기 위한 활동을 금전적 또는 비금전적으로 구분하여 사회적 환원 노력도를 확인합니다.</div></div>
           <div class="table-card table-wrap">
             <table class="i6-table">
-              <thead><tr><th colspan="2">판단기준</th><th>내용(요약)</th></tr></thead>
+              <thead><tr><th colspan="2">판단기준</th><th>내용(요약)</th><th style="width:120px;">점수</th></tr></thead>
               <tbody>
-                <tr><td class="sum-cell" rowspan="3">조직 내부운영을 위한 수익의 활용</td><td class="sum-cell">복리 후생비</td><td><div class="inline-2"><div class="field"><label>지출 금액</label><input id="i6WelfareAmount" type="number" value="0"></div><div class="field"><label>지출 내용</label><input id="i6WelfareText" type="text"></div></div></td></tr>
-                <tr><td class="sum-cell">구성원 성과급</td><td><div class="inline-2"><div class="field"><label>금액</label><input id="i6BonusAmount" type="number" value="0"></div><div class="field"><label>지급 내용</label><input id="i6BonusText" type="text"></div></div></td></tr>
-                <tr><td class="sum-cell">시설비 투자</td><td><div class="inline-2"><div class="field"><label>투자 금액</label><input id="i6FacilityAmount" type="number" value="0"></div><div class="field"><label>투자 내용</label><input id="i6FacilityText" type="text"></div></div></td></tr>
-                <tr><td class="sum-cell" rowspan="3">조직 외부운영을 위한 수익의 활용</td><td class="sum-cell">지역사회 재투자</td><td><div class="topbar"><div></div><button class="sample-btn dark" id="i6AddReinvestBtn" type="button">+ 행추가</button></div><div class="table-card table-wrap"><table><thead><tr><th style="width:44px;"></th><th>제공기관</th><th>제공내용</th><th style="width:140px;">금액(원)</th></tr></thead><tbody id="i6ReinvestBody"></tbody></table></div></td></tr>
+                <tr><td class="sum-cell" rowspan="3">조직 내부운영을 위한 수익의 활용</td><td class="sum-cell">복리 후생비</td><td><div class="inline-2"><div class="field"><label>지출 금액</label><input id="i6WelfareAmount" type="number" value="0"></div><div class="field"><label>지출 내용</label><input id="i6WelfareText" type="text"></div></div></td><td class="i3-score-cell"><select id="i6WelfareScore"><option value="0">0점</option><option value="1">1점</option></select></td></tr>
+                <tr><td class="sum-cell">구성원 성과급</td><td><div class="inline-2"><div class="field"><label>금액</label><input id="i6BonusAmount" type="number" value="0"></div><div class="field"><label>지급 내용</label><input id="i6BonusText" type="text"></div></div></td><td class="i3-score-cell"><select id="i6BonusScore"><option value="0">0점</option><option value="1">1점</option></select></td></tr>
+                <tr><td class="sum-cell">시설비 투자</td><td><div class="inline-2"><div class="field"><label>투자 금액</label><input id="i6FacilityAmount" type="number" value="0"></div><div class="field"><label>투자 내용</label><input id="i6FacilityText" type="text"></div></div></td><td class="i3-score-cell"><select id="i6FacilityScore"><option value="0">0점</option><option value="1">1점</option></select></td></tr>
+                <tr><td class="sum-cell" rowspan="3">조직 외부운영을 위한 수익의 활용</td><td class="sum-cell">지역사회 재투자</td><td><div class="topbar"><div></div><button class="sample-btn dark" id="i6AddReinvestBtn" type="button">+ 행추가</button></div><div class="table-card table-wrap"><table><thead><tr><th style="width:44px;"></th><th>제공기관</th><th>제공내용</th><th style="width:140px;">금액(원)</th></tr></thead><tbody id="i6ReinvestBody"></tbody></table></div></td><td class="i3-score-cell" rowspan="3"><strong id="i6ExternalScoreText">0점</strong><div class="i3-auto-note">자동산정</div></td></tr>
                 <tr><td class="sum-cell">사회서비스 제공</td><td><div class="topbar"><div></div><button class="sample-btn dark" id="i6AddServiceBtn" type="button">+ 행추가</button></div><div class="table-card table-wrap"><table><thead><tr><th style="width:44px;"></th><th>제공기관</th><th>제공내용</th><th style="width:140px;">금액(원)</th></tr></thead><tbody id="i6ServiceBody"></tbody></table></div></td></tr>
-                <tr><td class="sum-cell">실적총계</td><td><div class="muted" id="i6AvgText">동일업종 평균값을 불러오는 중입니다.</div><div class="inline-2"><div class="field"><label>실적 총계</label><input id="i6TotalAmount" type="number" value="0" readonly></div><div class="field"><label>동일업종 평균값 대비 비율</label><input id="i6Ratio" type="number" value="0" readonly></div></div></td></tr>
-                <tr><td class="sum-cell">기타</td><td class="sum-cell">(비금전적) 조직의 역량활용</td><td><textarea id="i6EtcText"></textarea></td></tr>
+                <tr><td class="sum-cell">실적총계</td><td><div class="muted" id="i6AvgText">동일업종 평균값을 불러오는 중입니다.</div><div class="inline-2"><div class="field"><label>외부활동 실적 총계</label><input id="i6TotalAmount" type="number" value="0" readonly></div><div class="field"><label>동일업종 평균값 대비 비율</label><input id="i6Ratio" type="number" value="0" readonly></div></div></td></tr>
+                <tr><td class="sum-cell">기타</td><td class="sum-cell">(비금전적) 조직의 역량활용</td><td><textarea id="i6EtcText"></textarea></td><td class="i3-score-cell"><select id="i6EtcScore"><option value="0">0점</option><option value="1">1점</option><option value="2">2점</option></select></td></tr>
               </tbody>
             </table>
           </div>
@@ -1228,6 +1253,20 @@
           <div class="table-card disabled-wrap" id="i7BoardWrap"><div class="table-wrap"><table class="i7-table"><thead><tr><th style="width:44px;"></th><th>의사결정기구</th><th style="width:160px;">회의일자</th><th style="width:130px;">임직원 공유여부</th><th style="width:110px;">회의 참여임원</th><th style="width:110px;">사외이사</th><th style="width:110px;">근로자 대표</th></tr></thead><tbody id="i7BoardBody"></tbody><tfoot><tr><td colspan="4" class="sum-cell">합계</td><td class="sum-cell" id="i7BoardSumAttend">0</td><td class="sum-cell" id="i7BoardSumOutside">0</td><td class="sum-cell" id="i7BoardSumWorker">0</td></tr></tfoot></table></div></div>
 
           <label class="sub-check" style="margin-top:16px;"><input type="checkbox" id="i7CoopEnabled"> 협동조합 총회를 주요 의사결정기구로 운영하는 경우</label>
+          <div class="paste-import">
+            <div class="paste-import-head">
+              <div>
+                <div class="paste-import-title">지표7 협동조합 총회 붙여넣기</div>
+                <div class="hint">의사결정기구, 회의일자, 공유여부, 전체 조합원, 참석 조합원 순서로 복사한 내용을 붙여넣으면 표에 자동 반영됩니다.</div>
+              </div>
+            </div>
+            <textarea id="i7CoopPasteText" placeholder="예) 총회    2025.03.17    여    부    4    1"></textarea>
+            <div class="paste-actions">
+              <button class="btn primary" id="applyI7CoopPasteBtn" type="button">총회 반영</button>
+              <button class="btn" id="clearI7CoopPasteBtn" type="button">내용 지우기</button>
+              <span class="paste-status" id="i7CoopPasteStatus">붙여넣기 대기 중</span>
+            </div>
+          </div>
           <div class="topbar"><div></div><button class="sample-btn dark" id="i7AddCoopBtn" type="button">+ 행추가</button></div>
           <div class="table-card disabled-wrap" id="i7CoopWrap"><div class="table-wrap"><table class="i7-table"><thead><tr><th style="width:44px;"></th><th>의사결정기구</th><th style="width:160px;">회의일자</th><th style="width:130px;">임직원 공유여부</th><th style="width:140px;">전체 조합원</th><th style="width:140px;">참석 조합원</th></tr></thead><tbody id="i7CoopBody"></tbody><tfoot><tr><td colspan="4" class="sum-cell">합계</td><td class="sum-cell" id="i7CoopSumAll">0</td><td class="sum-cell" id="i7CoopSumAttend">0</td></tr></tfoot></table></div></div>
 
@@ -1258,6 +1297,20 @@
           <div class="form-grid-2">
             <div class="field"><label>전체 근로자 수(A)</label><input id="i9TotalWorkers" type="number" value="0" readonly></div>
             <div class="field"><label>교육 훈련비</label><input id="i9TrainingCost" type="number" value="0"></div>
+          </div>
+          <div class="paste-import">
+            <div class="paste-import-head">
+              <div>
+                <div class="paste-import-title">지표9 교육훈련 붙여넣기</div>
+                <div class="hint">교육과정 명, 수혜자 수, 교육시간, 1인당 교육시간 순서로 복사한 내용을 붙여넣으면 표에 자동 반영됩니다.</div>
+              </div>
+            </div>
+            <textarea id="i9PasteText" placeholder="예) 사회적가치지표(SVI)의 이해    5명    3시간"></textarea>
+            <div class="paste-actions">
+              <button class="btn primary" id="applyI9PasteBtn" type="button">지표9 반영</button>
+              <button class="btn" id="clearI9PasteBtn" type="button">내용 지우기</button>
+              <span class="paste-status" id="i9PasteStatus">붙여넣기 대기 중</span>
+            </div>
           </div>
           <div class="topbar"><div></div><button class="sample-btn dark" id="i9AddRowBtn" type="button">+ 행추가</button></div>
           <div class="table-card disabled-wrap" id="i9Wrap"><div class="table-wrap"><table class="i9-table"><thead><tr><th style="width:44px;"></th><th>교육과정 명</th><th style="width:140px;">수혜자 수(B)</th><th style="width:140px;">교육시간(C)</th><th style="width:160px;">1인당 교육시간(D)</th></tr></thead><tbody id="i9Body"></tbody><tfoot><tr><td colspan="4" class="sum-cell">합계(연평균 1인당 교육시간)</td><td class="sum-cell" id="i9TotalPerWorker">0 시간</td></tr></tfoot></table></div></div>
@@ -2160,7 +2213,19 @@ function createWorkerRow(data={}){ return { name:data.name || "", paid:data.paid
 function renderWorkerRows(bodyId, rows){
   const body = $(bodyId);
   if (!body) return;
-  body.innerHTML = rows.map((row, idx) => `
+  const is2024 = bodyId === "worker2024Body";
+  body.innerHTML = rows.map((row, idx) => is2024 ? `
+    <tr>
+      <td><button class="copy-btn" type="button" onclick="this.closest('tr').remove(); refreshAll(); saveData(false);">×</button></td>
+      <td class="sum-cell">${idx + 1}</td>
+      <td><input type="text" data-field="name" value="${escapeHtml(row.name || "")}"></td>
+      <td><input type="number" data-field="weekHours" step="0.01" value="${escapeHtml(row.weekHours ?? 0)}"></td>
+      <td><input type="number" data-field="hours" step="0.01" value="${escapeHtml(row.hours ?? 0)}"></td>
+      <td hidden><input type="checkbox" data-field="weak"></td>
+      <td hidden><input class="money-input" type="text" data-field="pay" value="0"></td>
+      <td hidden><input type="checkbox" data-field="paid" ${row.paid !== false ? "checked" : ""}></td>
+    </tr>
+  ` : `
     <tr>
       <td><button class="copy-btn" type="button" onclick="this.closest('tr').remove(); refreshAll(); saveData(false);">×</button></td>
       <td class="sum-cell">${idx + 1}</td>
@@ -2204,13 +2269,19 @@ function updateWorkerInfo(){
   const companyWorker2025 = num($("worker2025").value);
   const companyWeak2025 = num($("weak2025").value);
   const weakRate = paid2025.length ? (weak2025Rows.length / paid2025.length) * 100 : (companyWorker2025 ? (companyWeak2025 / companyWorker2025) * 100 : 0);
+  const totalPay2025 = paid2025.reduce((sum, row) => sum + num(row.pay), 0);
+  const totalHours2025 = paid2025.reduce((sum, row) => sum + num(row.hours), 0);
   const weakPay = weak2025Rows.reduce((sum, row) => sum + num(row.pay), 0);
   const weakHours = weak2025Rows.reduce((sum, row) => sum + num(row.hours), 0);
   const weakWage = weakHours ? weakPay / weakHours : 0;
+  const i8ManualPay = $("i8TotalPay").dataset.manual === "true";
+  const i8ManualHours = $("i8TotalHours").dataset.manual === "true";
   $("worker2025Summary").textContent = `${hasDetailedWorkerRows ? paid2025.length : companyWorker2025}명`;
   $("weak2025Summary").textContent = `${hasDetailedWorkerRows ? weak2025Rows.length : companyWeak2025}명`;
   $("workerWeakRateSummary").textContent = `${weakRate.toFixed(1)}%`;
   $("workerWeakWageSummary").textContent = `${fmt(Math.round(weakWage))}원`;
+  $("workerTotalPaySummary").textContent = `${fmt(totalPay2025)}원`;
+  $("workerTotalHoursSummary").textContent = `${fmt(totalHours2025)}시간`;
   if (hasDetailedWorkerRows) {
     $("worker2025").value = paid2025.length;
     $("worker2024").value = paid2024.length;
@@ -2219,6 +2290,10 @@ function updateWorkerInfo(){
   }
   $("i3EmploymentRate").value = weakRate ? weakRate.toFixed(1) : 0;
   $("i3AvgWage").value = weakWage ? Math.round(weakWage) : 0;
+  if (paid2025.length) {
+    if (!i8ManualPay) $("i8TotalPay").value = totalPay2025;
+    if (!i8ManualHours) $("i8TotalHours").value = totalHours2025 ? Number(totalHours2025.toFixed(2)) : 0;
+  }
 }
 function colLettersToIndex(ref){
   const letters = String(ref || "").replace(/[0-9]/g, "");
@@ -2657,7 +2732,7 @@ function isIndicator3Done(){
 function isIndicator4Done(){ return $("i4None").checked || getI4Rows().some(r => r.type || r.partner || r.activity || r.count); }
 function isIndicator5Done(){ return $("i5None").checked || getI5Rows().some(r => r.region || r.partner || r.purpose || r.activity || r.count); }
 function isIndicator6Done(){
-  return num($("i6WelfareAmount").value)+num($("i6BonusAmount").value)+num($("i6FacilityAmount").value)+getI6Rows("i6ReinvestBody").reduce((s,r)=>s+num(r.amount),0)+getI6Rows("i6ServiceBody").reduce((s,r)=>s+num(r.amount),0) > 0 || $("i6EtcText").value.trim();
+  return num($("i6WelfareAmount").value)+num($("i6BonusAmount").value)+num($("i6FacilityAmount").value)+getI6Rows("i6ReinvestBody").reduce((s,r)=>s+num(r.amount),0)+getI6Rows("i6ServiceBody").reduce((s,r)=>s+num(r.amount),0) > 0 || $("i6EtcText").value.trim() || num($("i6WelfareScore").value)+num($("i6BonusScore").value)+num($("i6FacilityScore").value)+num($("i6EtcScore").value) > 0;
 }
 function isIndicator7Done(){ return $("i7None").checked || $("i7BoardEnabled").checked || $("i7CoopEnabled").checked; }
 function isIndicator8Done(){ return $("i8None").checked || num($("i8TotalPay").value) || num($("i8TotalHours").value); }
@@ -2762,28 +2837,51 @@ function setElementsDisabled(elements, disabled){
 function updateIndicator3Mode(autoObligation){
   const obligationRow = $("i3ObligationRow");
   const cultureRow = $("i3CultureRow");
-  const obligationInputs = [...document.querySelectorAll('input[name="i3_obligation"]'), $("i3EmploymentRate"), $("i3AvgWage")];
   const cultureInputs = [$("i3Culture")];
   const hasObligation = autoObligation === "Y";
   const noObligation = autoObligation === "N";
   setElementsDisabled(document.querySelectorAll('input[name="i3_obligation"]'), true);
-  setElementsDisabled([$("i3EmploymentRate"), $("i3AvgWage")], noObligation || !autoObligation);
+  setElementsDisabled([$("i3EmploymentRate"), $("i3AvgWage")], true);
   setElementsDisabled(cultureInputs, hasObligation || !autoObligation);
+  setElementsDisabled([$("i3InternalPurposeScore")], hasObligation || !autoObligation);
   obligationRow?.classList.toggle("i3-disabled-row", noObligation || !autoObligation);
   cultureRow?.classList.toggle("i3-disabled-row", hasObligation || !autoObligation);
   $("i3ObligationAutoNote").textContent = autoObligation
     ? `기업정보의 사회적목적에 따라 '${hasObligation ? "예" : "아니요"}'로 자동 판정되었습니다.`
     : "기업정보의 사회적목적을 선택하면 자동 판정됩니다.";
 }
-function updateIndicator3Reference(){
+function getI3MedianIndustry(){
   const industry = $("industry").value || "";
+  return I3_EMPLOYMENT_MEDIANS[industry] != null ? industry : "전체 사회적기업";
+}
+function getI3EmploymentWageScore(){
+  const medianIndustry = getI3MedianIndustry();
+  const empMedian = I3_EMPLOYMENT_MEDIANS[medianIndustry];
+  const wageMedian = getI3WageMedian(medianIndustry);
+  const employmentRate = num($("i3EmploymentRate").value);
+  const avgWage = num($("i3AvgWage").value);
+  const employmentPass = employmentRate >= empMedian;
+  const wagePass = avgWage >= wageMedian;
+  return {
+    score:(employmentPass ? 1 : 0) + (wagePass ? 1 : 0),
+    medianIndustry,
+    empMedian,
+    wageMedian,
+    employmentPass,
+    wagePass
+  };
+}
+function i3PercentText(value){
+  return Number(value || 0).toFixed(2).replace(/\.00$/,"").replace(/(\.\d)0$/,"$1");
+}
+function updateIndicator3Reference(){
   const autoObligation = getAutoI3Obligation();
   if (autoObligation && getRadioValue("i3_obligation") !== autoObligation) setRadioValue("i3_obligation", autoObligation);
   updateIndicator3Mode(autoObligation);
 
   $("i3ObligationGuide").textContent = `취약계층 고용의무 여부: ${autoObligation === "Y" ? "예" : autoObligation === "N" ? "아니요" : "-"}`;
 
-  const medianIndustry = I3_EMPLOYMENT_MEDIANS[industry] != null ? industry : "전체 사회적기업";
+  const medianIndustry = getI3MedianIndustry();
   const empMedian = I3_EMPLOYMENT_MEDIANS[medianIndustry];
   const wageMedian = getI3WageMedian(medianIndustry);
   if (autoObligation === "Y") {
@@ -2799,9 +2897,23 @@ function updateIndicator3Reference(){
 }
 function updateIndicator3(){
   updateIndicator3Reference();
+  const autoObligation = getAutoI3Obligation();
   const internalDone = !!(getRadioValue("i3_obligation") || $("i3Culture").value.trim() || $("i3Safety").value.trim() || $("i3JobQuality").value.trim());
   const externalDone = !!($("i3SalePurpose").value.trim() || $("i3SaleTarget").value.trim() || $("i3SaleAction").value.trim() || $("i3ProdPurpose").value.trim() || $("i3ProdTarget").value.trim() || $("i3ProdAction").value.trim() || $("i3UserPurpose").value.trim() || $("i3UserTarget").value.trim() || $("i3UserAction").value.trim() || $("i3EtcPurpose").value.trim() || $("i3EtcTarget").value.trim() || $("i3EtcAction").value.trim());
-  const internalScore = num($("i3InternalPurposeScore").value) + num($("i3SafetyScore").value) + num($("i3JobQualityScore").value);
+  let internalBaseScore = num($("i3InternalPurposeScore").value);
+  if (autoObligation === "Y") {
+    const autoScore = getI3EmploymentWageScore();
+    internalBaseScore = autoScore.score;
+    $("i3InternalPurposeScore").value = internalBaseScore;
+    $("i3InternalPurposeScoreNote").textContent = `자동산정: 고용 ${i3PercentText($("i3EmploymentRate").value)}% / 기준 ${i3PercentText(autoScore.empMedian)}%, 임금 ${fmt($("i3AvgWage").value)}원 / 기준 ${fmt(autoScore.wageMedian)}원`;
+  } else if (autoObligation === "N") {
+    $("i3InternalPurposeScoreNote").textContent = "수동선택: 내부 문화 형성";
+  } else {
+    internalBaseScore = 0;
+    $("i3InternalPurposeScore").value = 0;
+    $("i3InternalPurposeScoreNote").textContent = "사회적목적 선택 필요";
+  }
+  const internalScore = internalBaseScore + num($("i3SafetyScore").value) + num($("i3JobQualityScore").value);
   const externalScore = num($("i3ExternalScore").value);
   $("i3InternalScore").value = internalScore;
   $("i3InternalStatus").textContent = internalDone ? "입력됨" : "미입력";
@@ -2902,6 +3014,72 @@ function scoreIndicator4(count){
   if (count >= 2) return 2;
   if (count >= 1) return 1;
   return 0;
+}
+function normalizeI4Type(value){
+  const text = String(value || "").trim();
+  if (!text) return "";
+  if (text === "사회적기업") return "인증 사회적기업";
+  if (text.includes("예비")) return "예비 사회적기업";
+  if (text.includes("사회적협동조합")) return "사회적협동조합";
+  if (text.includes("협동조합")) return "협동조합";
+  if (text.includes("마을기업")) return "마을기업";
+  if (text.includes("자활기업")) return "자활기업";
+  if (text.includes("사회적기업")) return "인증 사회적기업";
+  return text;
+}
+function normalizeI4Count(value){
+  const match = String(value || "").match(/\d+(?:\.\d+)?/);
+  return match ? match[0] : "";
+}
+function parseI4PasteRows(text){
+  const normalized = String(text || "")
+    .replace(/\r/g, "")
+    .replace(/\u00a0/g, " ")
+    .replace(/\t+/g, "\t")
+    .trim();
+  if (!normalized) return [];
+
+  const directRows = normalized.split("\n").map(line => {
+    const cells = line.split("\t").map(cell => cell.trim()).filter(Boolean);
+    if (cells.length < 4) return null;
+    return createI4Row({
+      type:normalizeI4Type(cells[0]),
+      partner:cells[1] || "",
+      activity:cells.slice(2, -1).join(" "),
+      count:normalizeI4Count(cells[cells.length - 1])
+    });
+  }).filter(Boolean);
+  if (directRows.length) return directRows;
+
+  const rows = [];
+  const countPattern = /연\s*\d+(?:\.\d+)?\s*회/g;
+  let start = 0;
+  let match;
+  while ((match = countPattern.exec(normalized)) !== null) {
+    const chunk = normalized.slice(start, match.index).trim();
+    start = match.index + match[0].length;
+    const cells = splitI5ChunkCells(chunk);
+    if (cells.length < 3) continue;
+    rows.push(createI4Row({
+      type:normalizeI4Type(cells[0]),
+      partner:cells[1] || "",
+      activity:cells.slice(2).join(" "),
+      count:normalizeI4Count(match[0])
+    }));
+  }
+  return rows.filter(row => row.type || row.partner || row.activity || row.count);
+}
+function applyI4Paste(){
+  const rows = parseI4PasteRows($("i4PasteText").value);
+  if (!rows.length) {
+    $("i4PasteStatus").textContent = "인식된 행이 없습니다. 복사 형식을 확인해주세요.";
+    return;
+  }
+  $("i4None").checked = false;
+  renderI4Rows(rows);
+  updateIndicator4();
+  saveData(false);
+  $("i4PasteStatus").textContent = `${rows.length}개 협력활동을 반영했습니다.`;
 }
 function updateIndicator4(){
   const none = $("i4None").checked;
@@ -3060,17 +3238,22 @@ function updateIndicator6(){
   const welfare = num($("i6WelfareAmount").value), bonus = num($("i6BonusAmount").value), facility = num($("i6FacilityAmount").value);
   const reinvest = getI6Rows("i6ReinvestBody").reduce((s,r)=>s+num(r.amount),0);
   const service = getI6Rows("i6ServiceBody").reduce((s,r)=>s+num(r.amount),0);
-  const total = welfare+bonus+facility+reinvest+service;
-  const ratio = avg>0 ? (total/avg)*100 : 0;
-  const score = ratio >= 80 ? 10 : ratio >= 60 ? 8 : ratio >= 40 ? 6 : ratio >= 20 ? 4 : ratio > 0 ? 2 : 0;
+  const internalTotal = welfare + bonus + facility;
+  const externalTotal = reinvest + service;
+  const ratio = avg>0 ? (externalTotal/avg)*100 : 0;
+  const externalScore = ratio > 100 ? 5 : ratio > 75 ? 4 : ratio > 50 ? 3 : ratio > 25 ? 2 : ratio > 0 ? 1 : 0;
+  const internalScore = num($("i6WelfareScore").value) + num($("i6BonusScore").value) + num($("i6FacilityScore").value);
+  const etcScore = num($("i6EtcScore").value);
+  const score = internalScore + externalScore + etcScore;
   $("i6AvgText").textContent = `동일업종 평균(${($("industry").value || "기준 업종")})의 평균값 ${fmt(avg)}`;
-  $("i6TotalAmount").value = total;
+  $("i6TotalAmount").value = externalTotal;
   $("i6Ratio").value = ratio ? ratio.toFixed(2) : 0;
-  $("i6MoneyStatus").textContent = `${fmt(total)} 원`;
-  $("i6NonMoneyStatus").textContent = $("i6EtcText").value.trim() ? "입력됨" : "미입력";
+  $("i6ExternalScoreText").textContent = `${externalScore}점`;
+  $("i6MoneyStatus").textContent = `${fmt(externalTotal)} 원`;
+  $("i6NonMoneyStatus").textContent = etcScore ? `${etcScore}점` : "0점";
   $("score6").textContent = score;
-  const hasAny = total || $("i6WelfareText").value.trim() || $("i6BonusText").value.trim() || $("i6FacilityText").value.trim() || $("i6EtcText").value.trim();
-  $("i6Summary").textContent = hasAny ? `우리기업은 조직의 내부운영 및 외부활동을 위해 총 ${fmt(total)}원을 활용하였으며, 비금전적 환원 활동도 함께 작성되었습니다.` : "우리기업은 조직의 내부운영과 외부활동을 위한 수익의 활용이 없습니다.";
+  const hasAny = internalTotal || externalTotal || internalScore || etcScore || $("i6WelfareText").value.trim() || $("i6BonusText").value.trim() || $("i6FacilityText").value.trim() || $("i6EtcText").value.trim();
+  $("i6Summary").textContent = hasAny ? `내부운영 ${internalScore}점, 외부활동 ${externalScore}점, 기타 비금전적 활동 ${etcScore}점으로 산정되었습니다.` : "우리기업은 조직의 내부운영과 외부활동을 위한 수익의 활용이 없습니다.";
   $("i6Status").textContent = hasAny ? "작성됨" : "작성 전";
 }
 
@@ -3180,6 +3363,43 @@ function parseI7BoardPasteRows(text){
   }
   return rows;
 }
+function parseI7CoopPasteRows(text){
+  const tokens = String(text || "")
+    .replace(/\r/g, "\n")
+    .split(/[\t\n]+/)
+    .map(token => token.trim())
+    .filter(Boolean);
+  const rows = [];
+  let index = 0;
+  while (index < tokens.length) {
+    const dateIndex = tokens.findIndex((token, offset) => offset >= index && isI7DateToken(token));
+    if (dateIndex <= index) break;
+    const org = tokens[dateIndex - 1] || "";
+    let cursor = dateIndex + 1;
+    let share = "";
+    if (isI7ShareToken(tokens[cursor])) {
+      share = normalizeI7Share(tokens[cursor]);
+      cursor += 1;
+      if (isI7ShareToken(tokens[cursor]) && /^[YN]$/.test(share)) cursor += 1;
+    }
+    const counts = [];
+    while (cursor < tokens.length && counts.length < 2) {
+      if (isI7DateToken(tokens[cursor])) break;
+      const numberMatch = String(tokens[cursor]).match(/-?\d+(?:\.\d+)?/);
+      if (numberMatch) counts.push(numberMatch[0]);
+      cursor += 1;
+    }
+    rows.push(createI7CoopRow({
+      org,
+      date: normalizeI7Date(tokens[dateIndex]),
+      share,
+      total: counts[0] || "",
+      attend: counts[1] || ""
+    }));
+    index = Math.max(cursor, dateIndex + 1);
+  }
+  return rows;
+}
 function applyI7Paste(){
   const rows = parseI7BoardPasteRows($("i7PasteText").value);
   if (!rows.length) {
@@ -3192,6 +3412,19 @@ function applyI7Paste(){
   updateIndicator7();
   saveData(false);
   $("i7PasteStatus").textContent = `${rows.length}개 회의 실적을 반영했습니다.`;
+}
+function applyI7CoopPaste(){
+  const rows = parseI7CoopPasteRows($("i7CoopPasteText").value);
+  if (!rows.length) {
+    $("i7CoopPasteStatus").textContent = "인식된 행이 없습니다. 복사 형식을 확인해주세요.";
+    return;
+  }
+  $("i7None").checked = false;
+  $("i7CoopEnabled").checked = true;
+  renderI7CoopRows(rows);
+  updateIndicator7();
+  saveData(false);
+  $("i7CoopPasteStatus").textContent = `${rows.length}개 총회 실적을 반영했습니다.`;
 }
 function scoreIndicator7(part, shareRate, meetingCount){
   if (meetingCount < 2) return 0;
@@ -3320,8 +3553,8 @@ function updateIndicator8(){
   $("i8InputWrap").classList.toggle("disabled-wrap", none);
   if (none) {
     $("i8AvgHourly").value = 0; $("i8AvgText").textContent = "0 원/시간"; $("i8BandText").textContent = "해당 없음";
-    $("score8").textContent = 0;
-    $("i8Summary").textContent = "유급근로자가 없어 임금수준을 산정하지 않습니다."; $("i8Status").textContent = "해당 없음"; return;
+    $("score8").textContent = 1.6;
+    $("i8Summary").textContent = "유급근로자가 0명인 경우 최저점 1.6점으로 산정합니다."; $("i8Status").textContent = "해당 없음"; return;
   }
   const pay = num($("i8TotalPay").value), hours = num($("i8TotalHours").value);
   const avg = hours>0 ? pay/hours : 0, band = hours>0 ? getI8BandLabel(avg) : "미산정";
@@ -3336,6 +3569,49 @@ function updateIndicator8(){
 
 function createI9Row(data={}){ return { name:data.name||"", b:data.b||"", c:data.c||"" }; }
 function getI9Rows(){ return [...document.querySelectorAll("#i9Body tr")].map(tr => ({ name:tr.querySelector(".i9-name")?.value||"", b:tr.querySelector(".i9-b")?.value||"", c:tr.querySelector(".i9-c")?.value||"" })); }
+function normalizeI9Number(value){
+  const match = String(value || "").replace(/,/g,"").match(/\d+(?:\.\d+)?/);
+  return match ? match[0] : "";
+}
+function parseI9PasteRows(text){
+  return String(text || "")
+    .replace(/\r/g,"\n")
+    .split("\n")
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      const cells = line.split("\t").map(cell => cell.trim()).filter(Boolean);
+      if (cells.length >= 4) {
+        return createI9Row({
+          name: cells.slice(0, cells.length - 3).join(" "),
+          b: normalizeI9Number(cells[cells.length - 3]),
+          c: normalizeI9Number(cells[cells.length - 2])
+        });
+      }
+      const tokens = line.split(/\s{2,}/).map(token => token.trim()).filter(Boolean);
+      if (tokens.length >= 4) {
+        return createI9Row({
+          name: tokens.slice(0, tokens.length - 3).join(" "),
+          b: normalizeI9Number(tokens[tokens.length - 3]),
+          c: normalizeI9Number(tokens[tokens.length - 2])
+        });
+      }
+      return null;
+    })
+    .filter(row => row && (row.name || row.b || row.c));
+}
+function applyI9Paste(){
+  const rows = parseI9PasteRows($("i9PasteText").value);
+  if (!rows.length) {
+    $("i9PasteStatus").textContent = "인식된 행이 없습니다. 복사 형식을 확인해주세요.";
+    return;
+  }
+  $("i9None").checked = false;
+  renderI9Rows(rows);
+  updateIndicator9();
+  saveData(false);
+  $("i9PasteStatus").textContent = `${rows.length}개 교육훈련을 반영했습니다.`;
+}
 function renderI9Rows(rows){
   $("i9Body").innerHTML = "";
   const a = num($("i9TotalWorkers").value);
@@ -3857,11 +4133,25 @@ function getCurrentScoreSummary(){
   const missing = rows.filter(row => Number(row.score || 0) < Number(row.max || 0)).length;
   return { total, grade:getGradeByScore(total), missing };
 }
+function getRegionLabel(address=""){
+  const text = String(address || "").trim();
+  if (!text) return "-";
+  if (/대구/.test(text)) return "대구";
+  if (/부산/.test(text)) return "부산";
+  if (/울산/.test(text)) return "울산";
+  if (/경북|경상북도/.test(text)) return "경북";
+  if (/경남|경상남도/.test(text)) return "경남";
+  const first = text.replace(/^\(\d{5}\)\s*/, "").split(/\s+/)[0] || "-";
+  return first.replace(/광역시|특별시|특별자치시|특별자치도|자치도|도|시$/g, "") || first;
+}
 function getCompanyMetaFromData(data, fallbackId){
   return {
     id:data.id || fallbackId || makeCompanyId(),
     name:(data.companyName || "").trim() || "새 기업",
     ceo:(data.ceoName || "").trim(),
+    orgType:(data.orgType || "").trim(),
+    address:(data.addrFull || "").trim(),
+    region:getRegionLabel(data.addrFull),
     certNo:(data.certNo || "").trim(),
     socialPurpose:data.socialPurpose || "-",
     total:Number(data.totalScore || 0),
@@ -3901,26 +4191,27 @@ function renderDashboard(){
   const search = ($("companySearch")?.value || "").trim().toLowerCase();
   const companies = getCompanies().sort((a,b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")));
   const filtered = companies.filter(company => {
-    const haystack = `${company.name || ""} ${company.ceo || ""} ${company.certNo || ""} ${company.socialPurpose || ""}`.toLowerCase();
+    const data = company.data || {};
+    const orgType = company.orgType || data.orgType || "";
+    const address = company.address || data.addrFull || "";
+    const region = company.region || getRegionLabel(address);
+    const haystack = `${company.name || ""} ${company.ceo || ""} ${company.certNo || ""} ${company.socialPurpose || ""} ${orgType} ${region} ${address}`.toLowerCase();
     return !search || haystack.includes(search);
   });
-  const totalScore = companies.reduce((sum, company) => sum + Number(company.total || 0), 0);
-  const bestScore = companies.reduce((best, company) => Math.max(best, Number(company.total || 0)), 0);
-  $("dashCompanyCount").textContent = companies.length;
-  $("dashAvgScore").textContent = companies.length ? formatScoreValue(totalScore / companies.length) : "0";
-  $("dashBestScore").textContent = companies.length ? formatScoreValue(bestScore) : "0";
-  $("dashNeedCount").textContent = companies.filter(company => Number(company.missing || 0) > 0).length;
   $("emptyCompanies").classList.toggle("is-hidden", filtered.length > 0);
-  $("companyListBody").innerHTML = filtered.map(company => `
+  $("companyListBody").innerHTML = filtered.map((company, idx) => {
+    const data = company.data || {};
+    const orgType = company.orgType || data.orgType || "-";
+    const region = company.region || getRegionLabel(company.address || data.addrFull || "");
+    return `
     <tr>
       <td>
-        <div class="company-name-cell">${escapeHtml(company.name || "새 기업")}</div>
-        <div class="company-meta">대표자 ${escapeHtml(company.ceo || "-")} · 인증번호 ${escapeHtml(company.certNo || "-")}</div>
+        <div class="company-title-line">
+          <span class="company-no">No. ${idx + 1}</span>
+          <span class="company-name-cell">${escapeHtml(company.name || "새 기업")}</span>
+        </div>
+        <div class="company-meta">대표자 ${escapeHtml(company.ceo || "-")} · 조직유형 ${escapeHtml(orgType || "-")} · 지역 ${escapeHtml(region || "-")}</div>
       </td>
-      <td>${escapeHtml(company.socialPurpose || "-")}</td>
-      <td><strong>${formatScoreValue(company.total || 0)}</strong> / 100</td>
-      <td><span class="grade-badge ${getGradeClass(company.grade || "취약")}">${escapeHtml(company.grade || "취약")}</span></td>
-      <td>${formatDateTime(company.updatedAt)}</td>
       <td>
         <div class="company-actions">
           <button class="mini-btn primary" type="button" data-action="open" data-id="${company.id}">수정</button>
@@ -3929,7 +4220,7 @@ function renderDashboard(){
         </div>
       </td>
     </tr>
-  `).join("");
+  `}).join("");
 }
 function showDashboard(){
   if (activeCompanyId) saveData(false);
@@ -3959,6 +4250,8 @@ function resetForm(){
   renderI7BoardRows([createI7BoardRow()]);
   renderI7CoopRows([createI7CoopRow()]);
   renderI9Rows([createI9Row()]);
+  $("i8TotalPay").dataset.manual = "false";
+  $("i8TotalHours").dataset.manual = "false";
 }
 function openCompany(id, stepKey=null){
   const record = getCompanies().find(company => company.id === id);
@@ -4039,11 +4332,11 @@ function collectData(){
     i4None:$("i4None").checked, i4Rows:getI4Rows(), memo4:$("memo4").value,
     i5None:$("i5None").checked, i5Rows:getI5Rows(), memo5:$("memo5").value,
 
-    i6WelfareAmount:$("i6WelfareAmount").value, i6WelfareText:$("i6WelfareText").value, i6BonusAmount:$("i6BonusAmount").value, i6BonusText:$("i6BonusText").value, i6FacilityAmount:$("i6FacilityAmount").value, i6FacilityText:$("i6FacilityText").value, i6ReinvestRows:getI6Rows("i6ReinvestBody"), i6ServiceRows:getI6Rows("i6ServiceBody"), i6EtcText:$("i6EtcText").value, memo6:$("memo6").value,
+    i6WelfareAmount:$("i6WelfareAmount").value, i6WelfareText:$("i6WelfareText").value, i6WelfareScore:$("i6WelfareScore").value, i6BonusAmount:$("i6BonusAmount").value, i6BonusText:$("i6BonusText").value, i6BonusScore:$("i6BonusScore").value, i6FacilityAmount:$("i6FacilityAmount").value, i6FacilityText:$("i6FacilityText").value, i6FacilityScore:$("i6FacilityScore").value, i6ReinvestRows:getI6Rows("i6ReinvestBody"), i6ServiceRows:getI6Rows("i6ServiceBody"), i6EtcText:$("i6EtcText").value, i6EtcScore:$("i6EtcScore").value, memo6:$("memo6").value,
 
     i7None:$("i7None").checked, i7BoardEnabled:$("i7BoardEnabled").checked, i7CoopEnabled:$("i7CoopEnabled").checked, i7BoardRows:getI7Rows("i7BoardBody"), i7CoopRows:getI7Rows("i7CoopBody"), memo7:$("memo7").value,
 
-    i8None:$("i8None").checked, i8TotalPay:$("i8TotalPay").value, i8TotalHours:$("i8TotalHours").value, memo8:$("memo8").value,
+    i8None:$("i8None").checked, i8TotalPay:$("i8TotalPay").value, i8TotalHours:$("i8TotalHours").value, i8ManualPay:$("i8TotalPay").dataset.manual === "true", i8ManualHours:$("i8TotalHours").dataset.manual === "true", memo8:$("memo8").value,
 
     i9None:$("i9None").checked, i9ZeroWorkersButTraining:$("i9ZeroWorkersButTraining").checked, i9TotalWorkers:$("i9TotalWorkers").value, i9TrainingCost:$("i9TrainingCost").value, i9Rows:getI9Rows(), memo9:$("memo9").value,
 
@@ -4072,6 +4365,12 @@ function applyData(data){
     $("i3SafetyScore").value = old >= 3 ? 1 : 0;
     $("i3JobQualityScore").value = old >= 5 ? 2 : old >= 4 ? 2 : 0;
   }
+  if (data.i6WelfareScore == null) $("i6WelfareScore").value = (num(data.i6WelfareAmount) || String(data.i6WelfareText || "").trim()) ? 1 : 0;
+  if (data.i6BonusScore == null) $("i6BonusScore").value = (num(data.i6BonusAmount) || String(data.i6BonusText || "").trim()) ? 1 : 0;
+  if (data.i6FacilityScore == null) $("i6FacilityScore").value = (num(data.i6FacilityAmount) || String(data.i6FacilityText || "").trim()) ? 1 : 0;
+  if (data.i6EtcScore == null) $("i6EtcScore").value = String(data.i6EtcText || "").trim() ? 2 : 0;
+  $("i8TotalPay").dataset.manual = data.i8ManualPay ? "true" : "false";
+  $("i8TotalHours").dataset.manual = data.i8ManualHours ? "true" : "false";
 
   if (Array.isArray(data.i4Rows) && data.i4Rows.length) renderI4Rows(data.i4Rows); else ensureI4DefaultRow();
   if (Array.isArray(data.i5Rows) && data.i5Rows.length) renderI5Rows(data.i5Rows); else ensureI5DefaultRow();
@@ -4173,9 +4472,13 @@ function fillSample(){
   $("i6WelfareText").value = "직원 건강검진 및 복리후생 지원";
   $("i6BonusText").value = "성과 기반 구성원 성과급 지급";
   $("i6FacilityText").value = "교육 장비 및 환경 개선";
+  $("i6WelfareScore").value = 1;
+  $("i6BonusScore").value = 1;
+  $("i6FacilityScore").value = 1;
   renderI6Rows("i6ReinvestBody",[ { org:"대구 중구청", content:"지역 프로그램 후원", amount:"500000" } ]);
   renderI6Rows("i6ServiceBody",[ { org:"지역아동센터", content:"교육 서비스 무상 제공", amount:"700000" } ]);
   $("i6EtcText").value = "구성원의 전문성을 활용한 무료 멘토링 및 자문 지원";
+  $("i6EtcScore").value = 2;
 
   $("i7BoardEnabled").checked = true;
   renderI7BoardRows([{ org:"운영위원회", date:"2025-03-10", share:"Y", attend:"5", outside:"1", worker:"1" }]);
@@ -4221,6 +4524,7 @@ document.addEventListener("input", e => {
   }
   const tag = e.target.tagName;
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+    if (e.target.id === "i8TotalPay" || e.target.id === "i8TotalHours") e.target.dataset.manual = "true";
     formatMoneyInput(e.target);
     if (e.target.closest("#i9Body")) renderI9Rows(getI9Rows());
     refreshAll();
@@ -4229,7 +4533,10 @@ document.addEventListener("input", e => {
 document.addEventListener("change", e => {
   if (e.target.closest("#dashboardView")) return;
   const tag = e.target.tagName;
-  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") refreshAll();
+  if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+    if (e.target.id === "i8TotalPay" || e.target.id === "i8TotalHours") e.target.dataset.manual = "true";
+    refreshAll();
+  }
 });
 
 $("newCompanyBtn").addEventListener("click", createNewCompany);
@@ -4281,6 +4588,11 @@ $("clearWorkerPasteBtn2024").addEventListener("click", () => {
   $("workerPasteStatus2024").textContent = "붙여넣기 대기 중";
 });
 $("i4AddRowBtn").addEventListener("click", () => { const rows = getI4Rows(); rows.push(createI4Row()); renderI4Rows(rows); updateIndicator4(); saveData(false); });
+$("applyI4PasteBtn").addEventListener("click", applyI4Paste);
+$("clearI4PasteBtn").addEventListener("click", () => {
+  $("i4PasteText").value = "";
+  $("i4PasteStatus").textContent = "붙여넣기 대기 중";
+});
 $("i5AddRowBtn").addEventListener("click", () => { const rows = getI5Rows(); rows.push(createI5Row()); renderI5Rows(rows); updateIndicator5(); saveData(false); });
 $("applyI5PasteBtn").addEventListener("click", applyI5Paste);
 $("clearI5PasteBtn").addEventListener("click", () => {
@@ -4296,7 +4608,17 @@ $("clearI7PasteBtn").addEventListener("click", () => {
   $("i7PasteText").value = "";
   $("i7PasteStatus").textContent = "붙여넣기 대기 중";
 });
+$("applyI7CoopPasteBtn").addEventListener("click", applyI7CoopPaste);
+$("clearI7CoopPasteBtn").addEventListener("click", () => {
+  $("i7CoopPasteText").value = "";
+  $("i7CoopPasteStatus").textContent = "붙여넣기 대기 중";
+});
 $("i9AddRowBtn").addEventListener("click", () => { const rows = getI9Rows(); rows.push(createI9Row()); renderI9Rows(rows); updateIndicator9(); saveData(false); });
+$("applyI9PasteBtn").addEventListener("click", applyI9Paste);
+$("clearI9PasteBtn").addEventListener("click", () => {
+  $("i9PasteText").value = "";
+  $("i9PasteStatus").textContent = "붙여넣기 대기 중";
+});
 
 buildIndustryOptions();
 buildSteps();
