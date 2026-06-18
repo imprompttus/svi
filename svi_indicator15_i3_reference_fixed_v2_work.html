@@ -4528,7 +4528,9 @@ async function supabaseRequest(path, options={}){
     throw new Error(message || `Supabase 요청 실패 (${response.status})`);
   }
   if (response.status === 204) return null;
-  return response.json();
+  const text = await response.text();
+  if (!text) return null;
+  return JSON.parse(text);
 }
 function dbRowToCompany(row){
   const data = row.data || {};
@@ -4561,12 +4563,16 @@ function companyToDbRow(company){
     region:company.region || getRegionLabel(company.address || data.addrFull),
     cert_no:company.certNo || data.certNo || "",
     social_purpose:company.socialPurpose || data.socialPurpose || "-",
-    total:Number(company.total || data.totalScore || 0),
+    total:safeDbNumber(company.total || data.totalScore, 0),
     grade:company.grade || data.grade || getGradeByScore(Number(company.total || data.totalScore || 0)),
-    missing:Number(company.missing ?? data.missingCount ?? 14),
+    missing:safeDbNumber(company.missing ?? data.missingCount, 14),
     updated_at:company.updatedAt || data.updatedAt || new Date().toISOString(),
     data
   };
+}
+function safeDbNumber(value, fallback=0){
+  const n = Number(value);
+  return Number.isFinite(n) ? n : fallback;
 }
 async function loadCompaniesFromStore(){
   if (!isDbEnabled()) {
