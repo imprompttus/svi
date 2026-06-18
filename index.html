@@ -3348,18 +3348,6 @@ function parseI4PasteRows(text){
     .trim();
   if (!normalized) return [];
 
-  const directRows = normalized.split("\n").map(line => {
-    const cells = line.split("\t").map(cell => cell.trim()).filter(Boolean);
-    if (cells.length < 4) return null;
-    return createI4Row({
-      type:normalizeI4Type(cells[0]),
-      partner:cells[1] || "",
-      activity:cells.slice(2, -1).join(" "),
-      count:normalizeI4Count(cells[cells.length - 1])
-    });
-  }).filter(Boolean);
-  if (directRows.length) return directRows;
-
   const rows = [];
   const countPattern = /연\s*\d+(?:\.\d+)?\s*회/g;
   let start = 0;
@@ -3376,7 +3364,19 @@ function parseI4PasteRows(text){
       count:normalizeI4Count(match[0])
     }));
   }
-  return rows.filter(row => row.type || row.partner || row.activity || row.count);
+  const countedRows = rows.filter(row => row.type || row.partner || row.activity || row.count);
+  if (countedRows.length) return countedRows;
+
+  return normalized.split("\n").map(line => {
+    const cells = line.split("\t").map(cell => cell.trim()).filter(Boolean);
+    if (cells.length < 4) return null;
+    return createI4Row({
+      type:normalizeI4Type(cells[0]),
+      partner:cells[1] || "",
+      activity:cells.slice(2, -1).join(" "),
+      count:normalizeI4Count(cells[cells.length - 1])
+    });
+  }).filter(Boolean);
 }
 function applyI4Paste(){
   const rows = parseI4PasteRows($("i4PasteText").value);
