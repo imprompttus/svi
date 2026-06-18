@@ -927,7 +927,7 @@
       <div class="panel-body">
         <!-- STEP 0 -->
         <section class="step-panel active" data-step="0">
-          <div class="paste-import" id="i7BoardPasteWrap">
+          <div class="paste-import" id="companyPasteWrap">
             <div class="paste-import-head">
               <div>
                 <div class="paste-import-title">기업정보 붙여넣기</div>
@@ -950,6 +950,7 @@
                 <option value="">선택</option>
                 <option>일자리제공형</option>
                 <option>사회서비스제공형</option>
+                <option>지역사회공헌형</option>
                 <option>지역사회공헌형-가형</option>
                 <option>지역사회공헌형-나형</option>
                 <option>지역사회공헌형-다형</option>
@@ -962,7 +963,7 @@
             <div class="field"><label class="req">주 업종</label><select id="industry"></select><div class="hint">* 기업의 업종은 제출된 재무제표확인원 또는 표준재무제표증명상 업종을 기준으로 판단합니다.</div></div>
             <div class="field"><label class="req">조직유형</label>
               <select id="orgType">
-                <option value="">선택</option><option>인증</option><option>예비</option><option>사회적협동조합</option><option>협동조합</option><option>기타</option>
+                <option value="">선택</option><option>인증</option><option>예비</option><option>예비(지역형)</option><option>예비(부처형)</option><option>사회적협동조합</option><option>협동조합</option><option>기타</option>
               </select>
             </div>
             <div class="field"><label class="req">전화번호(회사)</label><input id="phoneOffice" type="text"></div>
@@ -1257,7 +1258,7 @@
         <!-- STEP 4 -->
         <section class="step-panel" data-step="4">
           <div class="guide-row"><div>사회적가치를 지향하는 사회연대경제기업과의 상호협력 활동수준을 확인합니다.</div></div>
-          <div class="paste-import" id="i7CoopPasteWrap">
+          <div class="paste-import">
             <div class="paste-import-head">
               <div>
                 <div class="paste-import-title">지표4 협력활동 붙여넣기</div>
@@ -1331,7 +1332,7 @@
           <div class="guide-row"><div>이해관계자의 주요 의사결정기구 참여율과 운영 결과 공유 실적을 측정합니다.</div></div>
           <label class="sub-check"><input type="checkbox" id="i7None"> 해당 없음(주요 의사결정기구 운영 실적이 없습니다.)</label>
           <label class="sub-check"><input type="checkbox" id="i7BoardEnabled"> 이사회 또는 운영위원회를 주요 의사결정기구로 운영하는 경우</label>
-          <div class="paste-import">
+          <div class="paste-import" id="i7BoardPasteWrap">
             <div class="paste-import-head">
               <div>
                 <div class="paste-import-title">지표7 이사회/운영위원회 붙여넣기</div>
@@ -1349,7 +1350,7 @@
           <div class="table-card disabled-wrap" id="i7BoardWrap"><div class="table-wrap"><table class="i7-table"><thead><tr><th style="width:44px;"></th><th>의사결정기구</th><th style="width:160px;">회의일자</th><th style="width:130px;">임직원 공유여부</th><th style="width:110px;">회의 참여임원</th><th style="width:110px;">사외이사</th><th style="width:110px;">근로자 대표</th></tr></thead><tbody id="i7BoardBody"></tbody><tfoot><tr><td colspan="4" class="sum-cell">합계</td><td class="sum-cell" id="i7BoardSumAttend">0</td><td class="sum-cell" id="i7BoardSumOutside">0</td><td class="sum-cell" id="i7BoardSumWorker">0</td></tr></tfoot></table></div></div>
 
           <label class="sub-check" style="margin-top:16px;"><input type="checkbox" id="i7CoopEnabled"> 협동조합 총회를 주요 의사결정기구로 운영하는 경우</label>
-          <div class="paste-import">
+          <div class="paste-import" id="i7CoopPasteWrap">
             <div class="paste-import-head">
               <div>
                 <div class="paste-import-title">지표7 협동조합 총회 붙여넣기</div>
@@ -2163,6 +2164,47 @@ function getPastedValue(lines, labels, options={}){
   }
   return "";
 }
+function normalizePastedDateValue(value){
+  const text = String(value || "").trim();
+  if (!text) return "";
+  const compact = text.match(/^(\d{4})(\d{2})(\d{2})$/);
+  const delimited = text.match(/^(\d{4})[.\-/](\d{1,2})[.\-/](\d{1,2})/);
+  const korean = text.match(/^(\d{4})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일?/);
+  const match = compact || delimited || korean;
+  if (!match) return "";
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  if (year < 1900 || year > 2100 || month < 1 || month > 12 || day < 1 || day > 31) return "";
+  const date = new Date(year, month - 1, day);
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return "";
+  return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+function getPastedDateByExactLabel(lines, label){
+  const normalizedLabel = normalizePasteLabel(label);
+  for (let i = 0; i < lines.length; i++) {
+    const cells = String(lines[i] || "").split(/\t+/).map(cell => cell.trim()).filter(Boolean);
+    for (let c = 0; c < cells.length; c++) {
+      if (normalizePasteLabel(cells[c]) === normalizedLabel) {
+        const inlineCandidate = cells[c + 1] || "";
+        const nextLineCandidate = lines[i + 1] || "";
+        return normalizePastedDateValue(inlineCandidate) || normalizePastedDateValue(nextLineCandidate);
+      }
+    }
+    const line = String(lines[i] || "").trim();
+    const normalized = normalizePasteLabel(line);
+    if (normalized === normalizedLabel) {
+      return normalizePastedDateValue(lines[i + 1] || "");
+    }
+    if (normalized.startsWith(normalizedLabel)) {
+      const remainder = line.replace(/^\s*설립일\s*[:：]?\s*/, "").trim();
+      if (remainder && normalizePasteLabel(remainder) !== normalizedLabel) {
+        return normalizePastedDateValue(remainder);
+      }
+    }
+  }
+  return "";
+}
 function parseYearRow(lines, rowLabels){
   const normalizedLabels = rowLabels.map(normalizePasteLabel);
   for (const line of lines) {
@@ -2187,13 +2229,30 @@ function setIfValue(id, value){
 }
 function setSelectIfOption(id, value){
   if (!$(id) || !value) return false;
-  const cleaned = String(value).trim();
+  const cleaned = normalizeSelectPasteValue(id, value);
   const option = [...$(id).options].find(opt => opt.value === cleaned || opt.textContent.trim() === cleaned);
   if (option) {
     $(id).value = option.value;
     return true;
   }
   return false;
+}
+function normalizeSelectPasteValue(id, value){
+  const cleaned = String(value || "").trim();
+  const normalized = normalizePasteLabel(cleaned);
+  if (id === "orgType") {
+    if (/예비/.test(cleaned) && /지역/.test(cleaned)) return "예비(지역형)";
+    if (/예비/.test(cleaned) && /부처/.test(cleaned)) return "예비(부처형)";
+    if (normalized === "인증사회적기업") return "인증";
+  }
+  if (id === "socialPurpose") {
+    if (/지역사회공헌형/.test(cleaned) && /가/.test(cleaned)) return "지역사회공헌형-가형";
+    if (/지역사회공헌형/.test(cleaned) && /나/.test(cleaned)) return "지역사회공헌형-나형";
+    if (/지역사회공헌형/.test(cleaned) && /다/.test(cleaned)) return "지역사회공헌형-다형";
+    if (normalized === "지역사회공헌형") return "지역사회공헌형";
+    if (normalized.includes("기타") || normalized.includes("창의혁신")) return "기타(창의·혁신)형";
+  }
+  return cleaned;
 }
 function setRadioIfValue(name, value){
   const target = [...document.querySelectorAll(`input[name="${name}"]`)].find(radio => radio.value === String(value).trim());
@@ -2218,7 +2277,12 @@ function applyCompanyPaste(){
   let count = 0;
   count += setIfValue("companyName", getPastedValue(lines, ["기업명"], { stopLabels:stops })) ? 1 : 0;
   count += setIfValue("ceoName", getPastedValue(lines, ["대표자명"], { stopLabels:stops })) ? 1 : 0;
-  count += setIfValue("foundedDate", getPastedValue(lines, ["설립일"], { stopLabels:stops })) ? 1 : 0;
+  const foundedDate = getPastedDateByExactLabel(lines, "설립일");
+  if (foundedDate) {
+    count += setIfValue("foundedDate", foundedDate) ? 1 : 0;
+  } else {
+    $("foundedDate").value = "";
+  }
   count += setIfValue("certNo", getPastedValue(lines, ["인증번호", "인증(지정)번호"], { stopLabels:stops })) ? 1 : 0;
   count += setIfValue("bizNo", getPastedValue(lines, ["사업자등록번호"], { stopLabels:stops })) ? 1 : 0;
   count += setIfValue("phoneOffice", getPastedValue(lines, ["전화번호(회사)", "전화번호회사"], { stopLabels:stops })) ? 1 : 0;
