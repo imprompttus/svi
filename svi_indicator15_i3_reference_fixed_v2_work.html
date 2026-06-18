@@ -774,10 +774,31 @@
       font-weight:700;
       line-height:1.45;
     }
+    .coaching-cell{
+      text-align:center !important;
+      padding-left:8px !important;
+      padding-right:8px !important;
+    }
+    .coaching-check{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:7px;
+      font-size:12px;
+      font-weight:900;
+      color:#24415f;
+      cursor:pointer;
+      white-space:nowrap;
+    }
+    .coaching-check input{
+      width:17px;
+      height:17px;
+      accent-color:#1f5f9e;
+    }
     .company-actions{
       display:flex;
       gap:6px;
-      justify-content:flex-end;
+      justify-content:center;
       flex-wrap:wrap;
     }
     .mini-btn{
@@ -959,7 +980,8 @@
           <thead>
             <tr>
               <th>기업</th>
-              <th style="width:22%;text-align:right;">관리</th>
+              <th style="width:12%;text-align:center;">심화코칭</th>
+              <th style="width:22%;text-align:center;">관리</th>
             </tr>
           </thead>
           <tbody id="companyListBody"></tbody>
@@ -4685,6 +4707,7 @@ function dbRowToCompany(row){
     region:row.region || getRegionLabel(row.address || data.addrFull),
     certNo:row.cert_no || data.certNo || "",
     socialPurpose:row.social_purpose || data.socialPurpose || "-",
+    deepCoaching:!!data.deepCoaching,
     total:Number(row.total || data.totalScore || 0),
     grade:row.grade || data.grade || getGradeByScore(Number(row.total || data.totalScore || 0)),
     missing:Number(row.missing ?? data.missingCount ?? 14),
@@ -4772,6 +4795,7 @@ function getCompanyMetaFromData(data, fallbackId){
     region:getRegionLabel(data.addrFull),
     certNo:(data.certNo || "").trim(),
     socialPurpose:data.socialPurpose || "-",
+    deepCoaching:!!data.deepCoaching,
     total:Number(data.totalScore || 0),
     grade:data.grade || getGradeByScore(Number(data.totalScore || 0)),
     missing:Number(data.missingCount || 14),
@@ -4831,7 +4855,8 @@ async function renderDashboard(forceReload=false){
     const address = company.address || data.addrFull || "";
     const region = company.region || getRegionLabel(address);
     const phoneMobile = company.phoneMobile || data.phoneMobile || "";
-    const haystack = `${company.name || ""} ${company.ceo || ""} ${company.certNo || ""} ${company.socialPurpose || ""} ${orgType} ${region} ${address} ${phoneMobile}`.toLowerCase();
+    const deepCoaching = !!(company.deepCoaching || data.deepCoaching);
+    const haystack = `${company.name || ""} ${company.ceo || ""} ${company.certNo || ""} ${company.socialPurpose || ""} ${orgType} ${region} ${address} ${phoneMobile} ${deepCoaching ? "심화코칭 대상기업" : ""}`.toLowerCase();
     return !search || haystack.includes(search);
   });
   $("emptyCompanies").classList.toggle("is-hidden", filtered.length > 0);
@@ -4842,6 +4867,7 @@ async function renderDashboard(forceReload=false){
     const phoneMobile = company.phoneMobile || data.phoneMobile || "-";
     const created = company.createdAt || data.createdAt || company.updatedAt || data.updatedAt;
     const updated = company.updatedAt || data.updatedAt;
+    const deepCoaching = !!(company.deepCoaching || data.deepCoaching);
     return `
     <tr>
       <td>
@@ -4850,6 +4876,11 @@ async function renderDashboard(forceReload=false){
         </div>
         <div class="company-meta">${escapeHtml(company.ceo || "-")} / ${escapeHtml(orgType || "-")} / ${escapeHtml(region || "-")} / ${escapeHtml(phoneMobile || "-")}</div>
         <div class="company-dates">생성 ${formatDateTime(created)} / 수정 ${formatDateTime(updated)}</div>
+      </td>
+      <td class="coaching-cell">
+        <label class="coaching-check">
+          <input type="checkbox" class="deep-coaching-check" data-id="${company.id}" ${deepCoaching ? "checked" : ""}>
+        </label>
       </td>
       <td>
         <div class="company-actions">
@@ -4927,15 +4958,38 @@ async function deleteCompany(id){
   }
   renderDashboard();
 }
+function updateDeepCoaching(id, checked){
+  const companies = getCompanies();
+  const index = companies.findIndex(company => company.id === id);
+  if (index < 0) return;
+  const updatedAt = new Date().toISOString();
+  const company = {
+    ...companies[index],
+    deepCoaching:checked,
+    updatedAt,
+    data:{
+      ...(companies[index].data || {}),
+      deepCoaching:checked,
+      updatedAt
+    }
+  };
+  companies[index] = company;
+  setCompanies(companies);
+  saveCompanyToDb(company).catch(e => {
+    console.error(e);
+    if ($("saveStatus")) $("saveStatus").textContent = "공용 DB 저장 실패: 이 브라우저에만 임시 저장됨";
+  });
+}
 function exportCompaniesCsv(){
   const companies = getCompanies();
   const rows = [
-    ["기업명","대표자명","인증번호","사회적목적","총점","등급","보완필요지표수","최근수정일"],
+    ["기업명","대표자명","인증번호","사회적목적","심화코칭대상","총점","등급","보완필요지표수","최근수정일"],
     ...companies.map(company => [
       company.name || "",
       company.ceo || "",
       company.certNo || "",
       company.socialPurpose || "",
+      (company.deepCoaching || company.data?.deepCoaching) ? "Y" : "N",
       formatScoreValue(company.total || 0),
       company.grade || "",
       company.missing || 0,
@@ -4983,6 +5037,7 @@ async function requireAdminBeforeStart(){
 function collectData(){
   return {
     currentStep,
+    deepCoaching:!!(getCompanies().find(company => company.id === activeCompanyId)?.deepCoaching),
     companyName:$("companyName").value, ceoName:$("ceoName").value, foundedDate:$("foundedDate").value, socialPurpose:$("socialPurpose").value, certNo:$("certNo").value,
     bizNo:$("bizNo").value, industry:$("industry").value, orgType:$("orgType").value,
     phoneOffice:$("phoneOffice").value, phoneMobile:$("phoneMobile").value, addrFull:$("addrFull").value, history:$("history").value, mainBiz:$("mainBiz").value,
@@ -5241,12 +5296,18 @@ $("clearCompanyPasteBtn").addEventListener("click", () => {
   $("companyPasteStatus").textContent = "붙여넣기 대기 중";
 });
 $("companyListBody").addEventListener("click", e => {
+  if (e.target.closest(".deep-coaching-check")) return;
   const button = e.target.closest("button[data-action]");
   if (!button) return;
   const id = button.dataset.id;
   if (button.dataset.action === "delete") deleteCompany(id);
   else if (button.dataset.action === "result") openCompany(id, "15");
   else openCompany(id);
+});
+$("companyListBody").addEventListener("change", e => {
+  const checkbox = e.target.closest(".deep-coaching-check");
+  if (!checkbox) return;
+  updateDeepCoaching(checkbox.dataset.id, checkbox.checked);
 });
 
 $("prevBtn").addEventListener("click", () => { if (currentStep>0){ currentStep--; renderStep(); saveData(false);} });
