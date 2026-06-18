@@ -576,6 +576,24 @@
       white-space:pre-line;
       line-height:1.55;
     }
+    .supplement-edit{
+      width:100%;
+      min-height:72px;
+      resize:vertical;
+      border:1px solid transparent;
+      background:#f8fafc;
+      border-radius:6px;
+      padding:8px 10px;
+      font:inherit;
+      line-height:1.45;
+      color:var(--ink);
+    }
+    .supplement-edit:focus{
+      outline:none;
+      border-color:var(--navy-3);
+      background:#fff;
+      box-shadow:0 0 0 3px rgba(46, 107, 157, .12);
+    }
     @media(max-width:1100px){
       .reviewer-memo-panel{
         float:none;
@@ -2467,7 +2485,8 @@ function updateWorkerInfo(){
   const paid2024 = rows2024.filter(r => r.paid);
   const weak2025Rows = paid2025.filter(r => r.weak);
   const weak2024Rows = paid2024.filter(r => r.weak);
-  const hasDetailedWorkerRows = paid2025.length || paid2024.length;
+  const hasDetailedWorkerRows2025 = paid2025.length > 0;
+  const hasDetailedWorkerRows2024 = paid2024.length > 0;
   const companyWorker2025 = num($("worker2025").value);
   const companyWeak2025 = num($("weak2025").value);
   const weakRate = paid2025.length ? (weak2025Rows.length / paid2025.length) * 100 : (companyWorker2025 ? (companyWeak2025 / companyWorker2025) * 100 : 0);
@@ -2478,16 +2497,18 @@ function updateWorkerInfo(){
   const weakWage = weakHours ? weakPay / weakHours : 0;
   const i8ManualPay = $("i8TotalPay").dataset.manual === "true";
   const i8ManualHours = $("i8TotalHours").dataset.manual === "true";
-  $("worker2025Summary").textContent = `${hasDetailedWorkerRows ? paid2025.length : companyWorker2025}명`;
-  $("weak2025Summary").textContent = `${hasDetailedWorkerRows ? weak2025Rows.length : companyWeak2025}명`;
+  $("worker2025Summary").textContent = `${hasDetailedWorkerRows2025 ? paid2025.length : companyWorker2025}명`;
+  $("weak2025Summary").textContent = `${hasDetailedWorkerRows2025 ? weak2025Rows.length : companyWeak2025}명`;
   $("workerWeakRateSummary").textContent = `${weakRate.toFixed(1)}%`;
   $("workerWeakWageSummary").textContent = `${fmt(Math.round(weakWage))}원`;
   $("workerTotalPaySummary").textContent = `${fmt(totalPay2025)}원`;
   $("workerTotalHoursSummary").textContent = `${fmt(totalHours2025)}시간`;
-  if (hasDetailedWorkerRows) {
+  if (hasDetailedWorkerRows2025) {
     $("worker2025").value = paid2025.length;
-    $("worker2024").value = paid2024.length;
     $("weak2025").value = weak2025Rows.length;
+  }
+  if (hasDetailedWorkerRows2024) {
+    $("worker2024").value = paid2024.length;
     $("weak2024").value = weak2024Rows.length;
   }
   $("i3EmploymentRate").value = weakRate ? weakRate.toFixed(1) : 0;
@@ -4297,6 +4318,17 @@ function joinNeeds(items){
 function hasAnyText(...values){
   return values.some(value => String(value || "").trim());
 }
+let customSupplements = {};
+function hasCustomSupplement(indicatorNo){
+  return Object.prototype.hasOwnProperty.call(customSupplements || {}, String(indicatorNo));
+}
+function getCustomSupplement(indicatorNo){
+  return hasCustomSupplement(indicatorNo) ? String(customSupplements[String(indicatorNo)] ?? "") : "";
+}
+function setCustomSupplement(indicatorNo, value){
+  customSupplements = customSupplements || {};
+  customSupplements[String(indicatorNo)] = String(value ?? "");
+}
 function getSupplementText(indicatorNo, row){
   const complete = Number(row.score || 0) >= Number(row.max || 0);
   const needs = [];
@@ -4371,6 +4403,9 @@ function getSupplementText(indicatorNo, row){
   }
   return withReviewerMemo(joinNeeds(needs), indicatorNo);
 }
+function getSupplementDisplayText(indicatorNo, row){
+  return hasCustomSupplement(indicatorNo) ? getCustomSupplement(indicatorNo) : getSupplementText(indicatorNo, row);
+}
 function getGradeByScore(total){
   return total >= 90 ? "탁월" : total >= 75 ? "우수" : total >= 60 ? "양호" : total >= 45 ? "미흡" : "취약";
 }
@@ -4404,7 +4439,7 @@ function renderPrintReport(rows, total, grade){
   `;
   $("printGrade").innerHTML = `<span class="print-grade-value ${getGradeClass(grade)}">${escapeHtml(grade)}</span>`;
   $("printSupplementBody").innerHTML = rows.map((r, idx) => `
-    <tr><td>${escapeHtml(r.name)}</td><td class="supplement-cell">${escapeHtml(getSupplementText(idx + 1, r))}</td></tr>
+    <tr><td>${escapeHtml(r.name)}</td><td class="supplement-cell">${escapeHtml(getSupplementDisplayText(idx + 1, r))}</td></tr>
   `).join("");
 }
 function renderResults(){
@@ -4417,24 +4452,31 @@ function renderResults(){
   $("resultGrade").textContent = grade;
 
   $("resultTableBody").innerHTML = rows.map((r, idx) => `
-    <tr class="result-row" data-step-key="${idx + 1}">
+    <tr class="result-row score-result-row" data-step-key="${idx + 1}">
       <td>${r.name}</td>
       <td><strong>${formatScoreValue(r.score)}</strong></td>
       <td>${r.max}</td>
     </tr>
   `).join("");
   $("supplementTableBody").innerHTML = rows.map((r, idx) => `
-    <tr class="result-row" data-step-key="${idx + 1}">
+    <tr class="supplement-row" data-indicator-no="${idx + 1}">
       <td>${r.name}</td>
-      <td class="supplement-cell">${escapeHtml(getSupplementText(idx + 1, r))}</td>
+      <td class="supplement-cell"><textarea class="supplement-edit" data-supplement-no="${idx + 1}" aria-label="${escapeHtml(r.name)} 보완사항">${escapeHtml(getSupplementDisplayText(idx + 1, r))}</textarea></td>
     </tr>
   `).join("");
-  document.querySelectorAll(".result-row").forEach(row => {
+  document.querySelectorAll(".score-result-row").forEach(row => {
     row.onclick = () => {
       currentStep = getStepIndexByKey(row.dataset.stepKey);
       renderStep();
       window.scrollTo({ top: 0, behavior: "smooth" });
     };
+  });
+  document.querySelectorAll(".supplement-edit").forEach(textarea => {
+    textarea.addEventListener("input", () => {
+      setCustomSupplement(textarea.dataset.supplementNo, textarea.value);
+      renderPrintReport(rows, total, grade);
+      scheduleSave();
+    });
   });
   renderPrintReport(rows, total, grade);
 }
@@ -4685,6 +4727,7 @@ function showApp(){
   if ($("activeCompanyLabel")) $("activeCompanyLabel").textContent = $("companyName").value.trim() || "새 기업";
 }
 function resetForm(){
+  customSupplements = {};
   document.querySelectorAll(".panel input, .panel textarea, .panel select").forEach(el => {
     if (el.type === "file") return;
     if (el.type === "checkbox" || el.type === "radio") el.checked = false;
@@ -4802,6 +4845,7 @@ function collectData(){
     worker2023:$("worker2023").value, worker2024:$("worker2024").value, worker2025:$("worker2025").value,
     weak2023:$("weak2023").value, weak2024:$("weak2024").value, weak2025:$("weak2025").value,
     workerRows2025:getWorkerRows("worker2025Body"), workerRows2024:getWorkerRows("worker2024Body"),
+    customSupplements:{...(customSupplements || {})},
 
     docCharter:$("docCharter").checked, docRules:$("docRules").checked, docEtc:$("docEtc").checked, pubMaterial:$("pubMaterial").checked, pubOpen:$("pubOpen").checked, pubEtc:$("pubEtc").checked, memo1:$("memo1").value,
 
@@ -4837,6 +4881,7 @@ function collectData(){
 function applyData(data){
   if (!data) return;
   if (data.socialPurpose === "기타(창의·혁신형 포함)") data.socialPurpose = "기타(창의·혁신)형";
+  customSupplements = data.customSupplements && typeof data.customSupplements === "object" ? {...data.customSupplements} : {};
   Object.keys(data).forEach(key => {
     const el = $(key);
     if (!el) return;
@@ -5010,6 +5055,7 @@ document.addEventListener("input", e => {
   }
   const tag = e.target.tagName;
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+    if (e.target.classList?.contains("supplement-edit")) return;
     if (handleI7DirectInput(e.target)) return;
     if (e.target.id === "i8TotalPay" || e.target.id === "i8TotalHours") e.target.dataset.manual = "true";
     formatMoneyInput(e.target);
@@ -5021,6 +5067,7 @@ document.addEventListener("change", e => {
   if (e.target.closest("#dashboardView")) return;
   const tag = e.target.tagName;
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
+    if (e.target.classList?.contains("supplement-edit")) return;
     if (handleI7DirectInput(e.target, true)) return;
     if (e.target.classList.contains("i7-date")) {
       const normalized = normalizeI7Date(e.target.value);
