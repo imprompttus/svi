@@ -1354,7 +1354,7 @@
             <div class="paste-import-head">
               <div>
                 <div class="paste-import-title">지표7 이사회/운영위원회 붙여넣기</div>
-                <div class="hint">의사결정기구, 회의일자, 공유여부, 회의 참여임원, 사외이사, 근로자 대표 순서로 복사한 내용을 붙여넣으면 표에 자동 반영됩니다.</div>
+                <div class="hint">의사결정기구, 회의일자, 공유여부, 회의 참여인원, 사외이사, 근로자 대표 순서로 복사한 내용을 붙여넣으면 표에 자동 반영됩니다.</div>
               </div>
             </div>
             <textarea id="i7PasteText" placeholder="예) 이사회    2025.03.17    여    부    4    1    1"></textarea>
@@ -1365,7 +1365,7 @@
             </div>
           </div>
           <div class="topbar"><div></div><button class="sample-btn dark" id="i7AddBoardBtn" type="button">+ 행추가</button></div>
-          <div class="table-card disabled-wrap" id="i7BoardWrap"><div class="table-wrap"><table class="i7-table"><thead><tr><th style="width:44px;"></th><th>의사결정기구</th><th style="width:160px;">회의일자</th><th style="width:130px;">임직원 공유여부</th><th style="width:110px;">회의 참여임원</th><th style="width:110px;">사외이사</th><th style="width:110px;">근로자 대표</th></tr></thead><tbody id="i7BoardBody"></tbody><tfoot><tr><td colspan="4" class="sum-cell">합계</td><td class="sum-cell" id="i7BoardSumAttend">0</td><td class="sum-cell" id="i7BoardSumOutside">0</td><td class="sum-cell" id="i7BoardSumWorker">0</td></tr></tfoot></table></div></div>
+          <div class="table-card disabled-wrap" id="i7BoardWrap"><div class="table-wrap"><table class="i7-table"><thead><tr><th style="width:44px;"></th><th>의사결정기구</th><th style="width:160px;">회의일자</th><th style="width:130px;">임직원 공유여부</th><th style="width:110px;">회의 참여인원</th><th style="width:110px;">사외이사</th><th style="width:110px;">근로자 대표</th></tr></thead><tbody id="i7BoardBody"></tbody><tfoot><tr><td colspan="4" class="sum-cell">합계</td><td class="sum-cell" id="i7BoardSumAttend">0</td><td class="sum-cell" id="i7BoardSumOutside">0</td><td class="sum-cell" id="i7BoardSumWorker">0</td></tr></tfoot></table></div></div>
 
           <label class="sub-check" style="margin-top:16px;"><input type="checkbox" id="i7CoopEnabled"> 협동조합 총회를 주요 의사결정기구로 운영하는 경우</label>
           <div class="paste-import" id="i7CoopPasteWrap">
@@ -3214,10 +3214,33 @@ function handleI7DirectInput(target, normalizeDate=false){
     const normalized = normalizeI7Date(target.value);
     if (normalized) target.value = normalized;
   }
+  clampI7BoardInputs(target);
   updateIndicator7();
   renderResults();
   scheduleSave();
   return true;
+}
+function clampI7BoardInputs(target){
+  const tr = target.closest("#i7BoardBody tr");
+  if (!tr) return;
+  const attendInput = tr.querySelector(".i7-attend");
+  const outsideInput = tr.querySelector(".i7-outside");
+  const workerInput = tr.querySelector(".i7-worker");
+  const attend = Math.max(0, num(attendInput?.value));
+  const outside = Math.max(0, num(outsideInput?.value));
+  const worker = Math.max(0, num(workerInput?.value));
+  if (target.classList.contains("i7-attend")) {
+    const minAttend = outside + worker;
+    if (attend < minAttend) attendInput.value = minAttend || "";
+    return;
+  }
+  if (target.classList.contains("i7-outside")) {
+    outsideInput.value = Math.min(outside, Math.max(0, attend - worker)) || "";
+    return;
+  }
+  if (target.classList.contains("i7-worker")) {
+    workerInput.value = Math.min(worker, Math.max(0, attend - outside)) || "";
+  }
 }
 
 function createI4Row(data={}){ return { type:data.type||"", partner:data.partner||"", activity:data.activity||"", count:data.count||"" }; }
@@ -3497,6 +3520,21 @@ function updateIndicator6(){
 
 function createI7BoardRow(data={}){ return { org:data.org||"", date:data.date||"", share:data.share||"", attend:data.attend||"", outside:data.outside||"", worker:data.worker||"" }; }
 function createI7CoopRow(data={}){ return { org:data.org||"", date:data.date||"", share:data.share||"", total:data.total||"", attend:data.attend||"" }; }
+function normalizeI7BoardRow(row){
+  const attend = Math.max(0, num(row.attend));
+  let outside = Math.max(0, num(row.outside));
+  let worker = Math.max(0, num(row.worker));
+  if (outside + worker > attend) {
+    worker = Math.min(worker, Math.max(0, attend - outside));
+    outside = Math.min(outside, attend);
+  }
+  return {
+    ...row,
+    attend: attend || row.attend || "",
+    outside: outside || "",
+    worker: worker || ""
+  };
+}
 function getI7Rows(bodyId){
   return [...document.querySelectorAll(`#${bodyId} tr`)].map(tr => bodyId==="i7BoardBody" ? ({
     org:tr.querySelector(".i7-org")?.value||"", date:getI7DateInputValue(tr.querySelector(".i7-date")), share:tr.querySelector(".i7-share:checked")?.value||"", attend:tr.querySelector(".i7-attend")?.value||"", outside:tr.querySelector(".i7-outside")?.value||"", worker:tr.querySelector(".i7-worker")?.value||""
@@ -3517,6 +3555,7 @@ function bindI7Delete(){
 function renderI7BoardRows(rows){
   $("i7BoardBody").innerHTML = "";
   rows.forEach((row, idx) => {
+    row = normalizeI7BoardRow(row);
     const tr = document.createElement("tr");
     tr.innerHTML = `<td><button class="i7-del" type="button" data-body="i7BoardBody" data-index="${idx}">×</button></td>
       <td><input type="text" class="i7-org" value="${escapeHtml(row.org)}"></td>
