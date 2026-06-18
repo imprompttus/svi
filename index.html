@@ -4310,7 +4310,7 @@ function withReviewerMemo(text, indicatorNo){
   const memo = getReviewerMemo(indicatorNo);
   const base = String(text || "").trim();
   if (!memo) return base || "-";
-  return [base, `담당자 메모: ${memo}`].filter(Boolean).join("\n");
+  return [base, `- 메모: ${memo}`].filter(Boolean).join("\n");
 }
 function joinNeeds(items){
   return items.filter(Boolean).map(item => `- ${item}`).join("\n");
@@ -4708,7 +4708,7 @@ async function renderDashboard(forceReload=false){
           <span class="company-name-cell">${escapeHtml(company.name || "새 기업")}</span>
         </div>
         <div class="company-meta">${escapeHtml(company.ceo || "-")} / ${escapeHtml(orgType || "-")} / ${escapeHtml(region || "-")} / ${escapeHtml(phoneMobile || "-")}</div>
-        <div class="company-dates">생성 ${formatDateShort(created)} / 수정 ${formatDateShort(updated)}</div>
+        <div class="company-dates">생성 ${formatDateTime(created)} / 수정 ${formatDateTime(updated)}</div>
       </td>
       <td>
         <div class="company-actions">
