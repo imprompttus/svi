@@ -2503,12 +2503,16 @@ function updateWorkerInfo(){
   $("workerWeakWageSummary").textContent = `${fmt(Math.round(weakWage))}원`;
   $("workerTotalPaySummary").textContent = `${fmt(totalPay2025)}원`;
   $("workerTotalHoursSummary").textContent = `${fmt(totalHours2025)}시간`;
-  if (hasDetailedWorkerRows2025) {
+  if (hasDetailedWorkerRows2025 && $("worker2025").dataset.manual !== "true") {
     $("worker2025").value = paid2025.length;
+  }
+  if (hasDetailedWorkerRows2025 && $("weak2025").dataset.manual !== "true") {
     $("weak2025").value = weak2025Rows.length;
   }
-  if (hasDetailedWorkerRows2024) {
+  if (hasDetailedWorkerRows2024 && $("worker2024").dataset.manual !== "true") {
     $("worker2024").value = paid2024.length;
+  }
+  if (hasDetailedWorkerRows2024 && $("weak2024").dataset.manual !== "true") {
     $("weak2024").value = weak2024Rows.length;
   }
   $("i3EmploymentRate").value = weakRate ? weakRate.toFixed(1) : 0;
@@ -4310,7 +4314,7 @@ function withReviewerMemo(text, indicatorNo){
   const memo = getReviewerMemo(indicatorNo);
   const base = String(text || "").trim();
   if (!memo) return base || "-";
-  return [base, `- 메모: ${memo}`].filter(Boolean).join("\n");
+  return [base, `- ${memo}`].filter(Boolean).join("\n");
 }
 function joinNeeds(items){
   return items.filter(Boolean).map(item => `- ${item}`).join("\n");
@@ -5064,6 +5068,7 @@ document.addEventListener("input", e => {
     if (e.target.classList?.contains("supplement-edit")) return;
     if (handleI7DirectInput(e.target)) return;
     if (e.target.id === "i8TotalPay" || e.target.id === "i8TotalHours") e.target.dataset.manual = "true";
+    if (["worker2024","worker2025","weak2024","weak2025"].includes(e.target.id)) e.target.dataset.manual = "true";
     formatMoneyInput(e.target);
     if (e.target.closest("#i9Body")) renderI9Rows(getI9Rows());
     refreshAll();
