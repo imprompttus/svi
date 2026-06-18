@@ -839,6 +839,46 @@
       overflow:auto;
       resize:vertical;
     }
+    .paste-import.paste-with-side-memo{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) 286px;
+      gap:10px 14px;
+      align-items:start;
+    }
+    .paste-import.paste-with-side-memo .paste-import-head{
+      grid-column:1;
+      margin-bottom:0;
+    }
+    .paste-import.paste-with-side-memo > textarea{
+      grid-column:1;
+      min-height:58px;
+      max-height:82px;
+    }
+    .paste-import.paste-with-side-memo > .paste-actions{
+      grid-column:1;
+    }
+    .paste-import.paste-with-side-memo > .reviewer-memo-panel{
+      grid-column:2;
+      grid-row:1 / span 3;
+      float:none;
+      width:auto;
+      margin:0;
+      height:100%;
+      box-shadow:none;
+    }
+    .paste-import.paste-with-side-memo > .reviewer-memo-panel textarea{
+      min-height:82px;
+      max-height:118px;
+    }
+    @media(max-width:900px){
+      .paste-import.paste-with-side-memo{
+        grid-template-columns:1fr;
+      }
+      .paste-import.paste-with-side-memo > .reviewer-memo-panel{
+        grid-column:1;
+        grid-row:auto;
+      }
+    }
     #companyPasteText{min-height:120px;max-height:180px}
     .paste-actions{
       display:flex;
@@ -2402,9 +2442,17 @@ function setupReviewerMemos(){
       <div class="reviewer-memo-title">담당자 메모</div>
       <textarea id="reviewMemo${step}" placeholder="보완 필요 서류, 확인사항, 담당자 의견을 입력하세요."></textarea>
     `;
-    const scoreBox = panel.querySelector(".score-box");
-    if (scoreBox) scoreBox.insertAdjacentElement("afterend", box);
-    else panel.insertBefore(box, panel.firstElementChild || null);
+    const pasteBox = [4,5].includes(step) ? panel.querySelector(".paste-import") : null;
+    if (pasteBox) {
+      pasteBox.classList.add("paste-with-side-memo");
+      pasteBox.appendChild(box);
+      const memoField = memo.closest(".field");
+      if (memoField) memoField.hidden = true;
+    } else {
+      const scoreBox = panel.querySelector(".score-box");
+      if (scoreBox) scoreBox.insertAdjacentElement("afterend", box);
+      else panel.insertBefore(box, panel.firstElementChild || null);
+    }
     const textarea = box.querySelector("textarea");
     textarea.value = memo.value || "";
     textarea.addEventListener("input", () => {
