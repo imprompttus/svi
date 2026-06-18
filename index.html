@@ -128,6 +128,9 @@
       color:var(--green);
       border-color:#8ad7b5;
     }
+    .step-item.done .step-dot::before{
+      content:"✓";
+    }
     .step-item.no-dot .step-dot{
       display:none;
     }
@@ -2543,11 +2546,14 @@ function updateWorkerInfo(){
   const weakRate = paid2025.length ? (weak2025Rows.length / paid2025.length) * 100 : (companyWorker2025 ? (companyWeak2025 / companyWorker2025) * 100 : 0);
   const totalPay2025 = paid2025.reduce((sum, row) => sum + num(row.pay), 0);
   const totalHours2025 = paid2025.reduce((sum, row) => sum + num(row.hours), 0);
+  const totalHours2024 = paid2024.reduce((sum, row) => sum + num(row.hours), 0);
   const weakPay = weak2025Rows.reduce((sum, row) => sum + num(row.pay), 0);
   const weakHours = weak2025Rows.reduce((sum, row) => sum + num(row.hours), 0);
   const weakWage = weakHours ? weakPay / weakHours : 0;
   const i8ManualPay = $("i8TotalPay").dataset.manual === "true";
   const i8ManualHours = $("i8TotalHours").dataset.manual === "true";
+  const i13ManualHours2025 = $("i13Hours2025").dataset.manual === "true";
+  const i13ManualHours2024 = $("i13Hours2024").dataset.manual === "true";
   $("worker2025Summary").textContent = `${hasDetailedWorkerRows2025 ? paid2025.length : companyWorker2025}명`;
   $("weak2025Summary").textContent = `${hasDetailedWorkerRows2025 ? weak2025Rows.length : companyWeak2025}명`;
   $("workerWeakRateSummary").textContent = `${weakRate.toFixed(1)}%`;
@@ -2571,6 +2577,10 @@ function updateWorkerInfo(){
   if (paid2025.length) {
     if (!i8ManualPay) $("i8TotalPay").value = totalPay2025;
     if (!i8ManualHours) $("i8TotalHours").value = totalHours2025 ? Number(totalHours2025.toFixed(2)) : 0;
+    if (!i13ManualHours2025) $("i13Hours2025").value = totalHours2025 ? Number(totalHours2025.toFixed(2)) : 0;
+  }
+  if (paid2024.length && !i13ManualHours2024) {
+    $("i13Hours2024").value = totalHours2024 ? Number(totalHours2024.toFixed(2)) : 0;
   }
 }
 function colLettersToIndex(ref){
@@ -2962,7 +2972,7 @@ function buildSteps(){
         <span class="step-num">${idx === 0 ? "" : idx + "."}</span>
         <span class="step-label">${step.title}</span>
       </div>
-      ${isResultStep ? "" : '<span class="step-dot">✓</span>'}
+      ${isResultStep ? "" : '<span class="step-dot"></span>'}
     `;
     li.addEventListener("click", () => { currentStep = idx; renderStep(); });
     $("stepList").appendChild(li);
@@ -3004,9 +3014,10 @@ function isWorkerInfoDone(){ return getWorkerRows("worker2025Body").some(row => 
 function isIndicator1Done(){ return $("docCharter").checked || $("docRules").checked || $("docEtc").checked || $("pubMaterial").checked || $("pubOpen").checked || $("pubEtc").checked; }
 function isIndicator2Done(){ return ["i2_criteria","i2_manager","i2_report","i2_committee","i2_share"].every(name => getRadioValue(name)); }
 function isIndicator3Done(){
-  const internal = getRadioValue("i3_obligation") || $("i3Culture").value.trim() || $("i3Safety").value.trim() || $("i3JobQuality").value.trim();
+  const internal = $("i3Culture").value.trim() || $("i3Safety").value.trim() || $("i3JobQuality").value.trim();
   const external = $("i3SalePurpose").value.trim() || $("i3SaleTarget").value.trim() || $("i3SaleAction").value.trim() || $("i3ProdPurpose").value.trim() || $("i3ProdTarget").value.trim() || $("i3ProdAction").value.trim() || $("i3UserPurpose").value.trim() || $("i3UserTarget").value.trim() || $("i3UserAction").value.trim() || $("i3EtcPurpose").value.trim() || $("i3EtcTarget").value.trim() || $("i3EtcAction").value.trim();
-  return !!(internal || external || num($("i3InternalScore").value) || num($("i3ExternalScore").value));
+  const manualScore = num($("i3SafetyScore").value) || num($("i3JobQualityScore").value) || num($("i3ExternalScore").value);
+  return !!(internal || external || manualScore);
 }
 function isIndicator4Done(){ return $("i4None").checked || getI4Rows().some(r => r.type || r.partner || r.activity || r.count); }
 function isIndicator5Done(){ return $("i5None").checked || getI5Rows().some(r => r.region || r.partner || r.purpose || r.activity || r.count); }
@@ -4980,7 +4991,7 @@ function collectData(){
     i11ZeroSales2024:$("i11ZeroSales2024").checked, i11Sales2025:$("i11Sales2025").value, i11Sales2024Input:$("i11Sales2024Input").value, memo11:$("memo11").value,
 
     i12ZeroSales2024:$("i12ZeroSales2024").checked, i12Profit2025:$("i12Profit2025").value, i12Profit2024Input:$("i12Profit2024Input").value, memo12:$("memo12").value,
-    i13NoWorkers2025:$("i13NoWorkers2025").checked, i13ZeroSales2024:$("i13ZeroSales2024").checked, i13ZeroWorkersAny:$("i13ZeroWorkersAny").checked, i13Sales2025:$("i13Sales2025").value, i13Hours2025:$("i13Hours2025").value, i13Sales2024Input:$("i13Sales2024Input").value, i13Hours2024:$("i13Hours2024").value, i13Comment:$("i13Comment").value, memo13:$("memo13").value,
+    i13NoWorkers2025:$("i13NoWorkers2025").checked, i13ZeroSales2024:$("i13ZeroSales2024").checked, i13ZeroWorkersAny:$("i13ZeroWorkersAny").checked, i13Sales2025:$("i13Sales2025").value, i13Hours2025:$("i13Hours2025").value, i13Hours2025Manual:$("i13Hours2025").dataset.manual === "true", i13Sales2024Input:$("i13Sales2024Input").value, i13Hours2024:$("i13Hours2024").value, i13Hours2024Manual:$("i13Hours2024").dataset.manual === "true", i13Comment:$("i13Comment").value, memo13:$("memo13").value,
     i14ProcessScore:$("i14ProcessScore").value, i14ResultScore:$("i14ResultScore").value, i14StaffCheck:$("i14StaffCheck").checked, i14RnDCheck:$("i14RnDCheck").checked, i14MgmtCheck:$("i14MgmtCheck").checked, i14CommCheck:$("i14CommCheck").checked, i14TechCheck:$("i14TechCheck").checked, i14ProcEtcCheck:$("i14ProcEtcCheck").checked, i14FinCheck:$("i14FinCheck").checked, i14CustomerCheck:$("i14CustomerCheck").checked, i14TechResultCheck:$("i14TechResultCheck").checked, i14ResultEtcCheck:$("i14ResultEtcCheck").checked, i14Staff:$("i14Staff").value, i14RnD:$("i14RnD").value, i14Mgmt:$("i14Mgmt").value, i14Comm:$("i14Comm").value, i14Tech:$("i14Tech").value, i14ProcEtc:$("i14ProcEtc").value, i14Fin:$("i14Fin").value, i14Customer:$("i14Customer").value, i14TechResult:$("i14TechResult").value, i14ResultEtc:$("i14ResultEtc").value, memo14:$("memo14").value
   };
 }
@@ -5007,6 +5018,8 @@ function applyData(data){
   if (data.i6EtcScore == null) $("i6EtcScore").value = String(data.i6EtcText || "").trim() ? 2 : 0;
   $("i8TotalPay").dataset.manual = data.i8ManualPay ? "true" : "false";
   $("i8TotalHours").dataset.manual = data.i8ManualHours ? "true" : "false";
+  $("i13Hours2025").dataset.manual = data.i13Hours2025Manual ? "true" : "false";
+  $("i13Hours2024").dataset.manual = data.i13Hours2024Manual ? "true" : "false";
 
   if (Array.isArray(data.i4Rows) && data.i4Rows.length) renderI4Rows(data.i4Rows); else ensureI4DefaultRow();
   if (Array.isArray(data.i5Rows) && data.i5Rows.length) renderI5Rows(data.i5Rows); else ensureI5DefaultRow();
@@ -5163,7 +5176,7 @@ document.addEventListener("input", e => {
   if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") {
     if (e.target.classList?.contains("supplement-edit")) return;
     if (handleI7DirectInput(e.target)) return;
-    if (e.target.id === "i8TotalPay" || e.target.id === "i8TotalHours") e.target.dataset.manual = "true";
+    if (["i8TotalPay","i8TotalHours","i13Hours2025","i13Hours2024"].includes(e.target.id)) e.target.dataset.manual = "true";
     if (["worker2024","worker2025","weak2024","weak2025"].includes(e.target.id)) e.target.dataset.manual = "true";
     formatMoneyInput(e.target);
     if (e.target.closest("#i9Body")) renderI9Rows(getI9Rows());
@@ -5180,7 +5193,7 @@ document.addEventListener("change", e => {
       const normalized = normalizeI7Date(e.target.value);
       if (normalized) e.target.value = normalized;
     }
-    if (e.target.id === "i8TotalPay" || e.target.id === "i8TotalHours") e.target.dataset.manual = "true";
+    if (["i8TotalPay","i8TotalHours","i13Hours2025","i13Hours2024"].includes(e.target.id)) e.target.dataset.manual = "true";
     refreshAll();
   }
 });
