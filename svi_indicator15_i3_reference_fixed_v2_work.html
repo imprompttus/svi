@@ -4292,6 +4292,9 @@ function calcI9PerWorker(row, totalWorkers){
 function formatI9Hours(value){
   return value ? Number(value).toFixed(2) : "0";
 }
+function formatI9TotalHours(value){
+  return value ? roundI9(value, 1).toFixed(1) : "0";
+}
 function scoreIndicator9Time(hours){
   if (hours >= 15) return 4;
   if (hours >= 10) return 3;
@@ -4309,9 +4312,9 @@ function updateIndicator9(){
   const timeScore = none ? 0 : scoreIndicator9Time(totalPer);
   const costScore = none ? 0 : (num($("i9TrainingCost").value) > 0 ? 1 : 0);
   const totalScore = timeScore + costScore;
-  $("i9TotalPerWorker").textContent = `${formatI9Hours(totalPer)} 시간`;
+  $("i9TotalPerWorker").textContent = `${formatI9TotalHours(totalPer)} 시간`;
   $("i9CostText").textContent = `${fmt($("i9TrainingCost").value)} 원`;
-  $("i9PerWorkerText").textContent = `${formatI9Hours(totalPer)} 시간`;
+  $("i9PerWorkerText").textContent = `${formatI9TotalHours(totalPer)} 시간`;
   $("i9TimeScoreText").textContent = `${timeScore} / 4`;
   $("i9CostScoreText").textContent = `${costScore} / 1`;
   $("score9").textContent = totalScore;
@@ -4321,7 +4324,7 @@ function updateIndicator9(){
   } else if (!hasRows && !num($("i9TrainingCost").value) && !a) {
     $("i9Summary").textContent = "우리 기업의 근로자 교육훈련이 없습니다."; $("i9Status").textContent = "작성 전";
   } else {
-    $("i9Summary").textContent = `우리 기업의 연평균 1인당 교육시간은 ${formatI9Hours(totalPer)}시간입니다.`; $("i9Status").textContent = "작성됨";
+    $("i9Summary").textContent = `우리 기업의 연평균 1인당 교육시간은 ${formatI9TotalHours(totalPer)}시간입니다.`; $("i9Status").textContent = "작성됨";
   }
 }
 
