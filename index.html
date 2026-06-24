@@ -5254,25 +5254,52 @@ function getCompanyMetaFromData(data, fallbackId){
     data
   };
 }
+function normalizeDataForChange(data){
+  const clone = JSON.parse(JSON.stringify(data || {}));
+  [
+    "id","createdAt","updatedAt","totalScore","grade","missingCount","currentStep",
+    "i13Comment",
+    "i14StaffCheck","i14RnDCheck","i14MgmtCheck","i14CommCheck","i14TechCheck","i14ProcEtcCheck",
+    "i14FinCheck","i14CustomerCheck","i14TechResultCheck","i14ResultEtcCheck"
+  ].forEach(key => delete clone[key]);
+  return clone;
+}
+function stableStringify(value){
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${stableStringify(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+function hasMeaningfulDataChange(previousData, nextData){
+  return stableStringify(normalizeDataForChange(previousData)) !== stableStringify(normalizeDataForChange(nextData));
+}
 function upsertActiveCompany(manual=false){
   if (!activeCompanyId) return;
   const companies = getCompanies();
   const index = companies.findIndex(company => company.id === activeCompanyId);
   const existing = index >= 0 ? companies[index] : null;
+  const previousData = existing?.data || {};
   const data = collectData();
   const summary = getCurrentScoreSummary();
   data.totalScore = summary.total;
   data.grade = summary.grade;
   data.missingCount = summary.missing;
   data.createdAt = data.createdAt || existing?.createdAt || existing?.data?.createdAt || new Date().toISOString();
-  data.updatedAt = new Date().toISOString();
   data.id = activeCompanyId;
+  const changed = !existing || hasMeaningfulDataChange(previousData, data);
+  data.updatedAt = changed ? new Date().toISOString() : (existing?.updatedAt || previousData.updatedAt || data.createdAt);
   const record = getCompanyMetaFromData(data, activeCompanyId);
   if (index >= 0) companies[index] = record;
   else companies.unshift(record);
   setCompanies(companies);
   localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   if ($("activeCompanyLabel")) $("activeCompanyLabel").textContent = record.name;
+  if (!changed) {
+    if ($("saveStatus")) $("saveStatus").textContent = "변경사항 없음";
+    if (manual) renderDashboard();
+    return;
+  }
   if ($("saveStatus")) $("saveStatus").textContent = isDbEnabled() ? "공용 DB 저장 중..." : "공용 DB 설정 없음: 이 브라우저에만 저장됨";
   saveCompanyToDb(record).then(() => {
     if ($("saveStatus")) $("saveStatus").textContent = isDbEnabled() ? "공용 DB에 저장되었습니다." : "공용 DB 설정 없음: 이 브라우저에만 저장됨";
