@@ -267,6 +267,44 @@
     .reference-box ul{margin:6px 0 0 18px;padding:0}
     .reference-box li{margin:3px 0}
     .reference-box .sub-note{display:block;margin-top:3px;color:#64748b;font-size:12px}
+    .reference-box-body{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+    }
+    .reference-box-main{min-width:0;flex:1}
+    .evidence-link-panel{
+      width:260px;
+      flex:0 0 260px;
+      padding:10px 12px;
+      border:1px solid #cfe0f3;
+      border-radius:12px;
+      background:#fff;
+      box-shadow:0 6px 18px rgba(31,79,130,.06);
+    }
+    .evidence-link-panel a{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:32px;
+      padding:7px 12px;
+      border-radius:8px;
+      background:var(--navy);
+      color:#fff;
+      font-weight:900;
+      text-decoration:none;
+    }
+    .evidence-link-panel div{
+      margin-top:7px;
+      color:#52677d;
+      font-size:11.5px;
+      line-height:1.45;
+    }
+    @media(max-width:900px){
+      .reference-box-body{flex-direction:column}
+      .evidence-link-panel{width:100%;flex:0 0 auto}
+    }
 
     .biz-split{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
     .addr-split{display:grid;grid-template-columns:160px 1fr 240px;gap:8px}
@@ -758,9 +796,39 @@
     }
     .dashboard-actions{
       display:flex;
+      gap:14px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    .dashboard-link-group{
+      display:flex;
       gap:8px;
       flex-wrap:wrap;
-      justify-content:flex-end;
+      align-items:center;
+      padding-right:14px;
+      border-right:1px solid #d8e4f1;
+    }
+    .dashboard-link-btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-height:38px;
+      padding:9px 13px;
+      border:1px solid #cddbed;
+      border-radius:10px;
+      background:#fff;
+      color:#16385a;
+      font-size:13px;
+      font-weight:900;
+      text-decoration:none;
+      box-shadow:0 7px 18px rgba(31,79,130,.05);
+      white-space:nowrap;
+    }
+    .dashboard-link-btn:hover{
+      border-color:#8fb7ff;
+      background:#f7fbff;
+      color:#0f4d91;
     }
     .dashboard-card{
       background:rgba(255,255,255,.9);
@@ -1000,6 +1068,7 @@
       .wrap{grid-template-columns:1fr}
       .dashboard-head{align-items:stretch;flex-direction:column}
       .dashboard-actions{justify-content:flex-start}
+      .dashboard-link-group{border-right:0;padding-right:0}
       .dashboard-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
       .sidebar{position:relative;top:0}
       .score-sticky-stack{top:61px}
@@ -1044,8 +1113,12 @@
         <div class="dashboard-sub">기업별 SVI 진단을 저장하고 관리합니다.</div>
       </div>
       <div class="dashboard-actions">
+        <div class="dashboard-link-group" aria-label="외부 바로가기">
+          <a class="dashboard-link-btn" href="https://www.seis.or.kr/svi/si/mn/siMainPage.do" target="_blank" rel="noopener noreferrer">사회적가치 포털</a>
+          <a class="dashboard-link-btn" href="https://docs.google.com/spreadsheets/d/1qNWCt306t_ChoGoGQyKcDeUnDvlKvvAazMyP89nM-Zw/edit?gid=1101761887#gid=1101761887" target="_blank" rel="noopener noreferrer">SVI 시트</a>
+          <a class="dashboard-link-btn" href="https://drive.google.com/drive/folders/1HA87TV8yG90jJNT_gI9t_F8D4x9M9ZHZ" target="_blank" rel="noopener noreferrer">심화코칭 업로드</a>
+        </div>
         <button class="btn primary" id="newCompanyBtn" type="button">기업 추가</button>
-        <button class="btn" id="exportCompaniesBtn" type="button">전체 목록 CSV</button>
       </div>
     </div>
     <div class="dashboard-card">
@@ -1923,7 +1996,7 @@ const EVIDENCE_REFERENCES = {
     "회의결과 공유 확인 가능한 증빙(회람명부, 사내 게시판 사진, 인트라넷 공유 캡처본 등)"
   ]}],
   8: [{ items:[
-    "'25년 12월말 기준 고용보험자격취득자명부",
+    "'24년 12월말 기준, '25년 12월말 기준 고용보험자격취득자명부",
     "'25년 12월말 기준 유급근로자 임금 확인 가능 증빙(임금대장 등)",
     "'25년 12월말 기준 유급근로자 근무 시간 확인 가능 증빙(근로계약서, 근무시간표, 유급근로자 명부 등)"
   ]}],
@@ -2499,21 +2572,28 @@ function applyCompanyPaste(){
   saveData(false);
   $("companyPasteStatus").textContent = count ? `${count}개 항목을 반영했습니다.` : "인식된 항목이 없습니다. 붙여넣기 형식을 확인해주세요.";
 }
-function buildEvidenceBox(groups){
+function buildEvidenceBox(groups, step){
   const box = document.createElement("div");
   box.className = "reference-box evidence-reference";
   const body = groups.map(group => `
     ${group.title ? `<div style="margin-top:10px;"><strong>${escapeHtml(group.title)}</strong></div>` : ""}
     <ul>${group.items.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
   `).join("");
-  box.innerHTML = `<div class="reference-box-title">증빙자료 체크리스트</div>${body}`;
+  const action = String(step) === "8" ? `
+    <div class="evidence-link-panel">
+      <a href="https://total.comwel.or.kr/" target="_blank" rel="noopener noreferrer">바로가기</a>
+      <div>기업 로그인 &gt; 증명원신청/발급 &gt; 고용·산재보험 사업장 취득자 명부 신청</div>
+      <div>보험구분: 고용 / 조회기간: 2024.12.31~2024.12.31, 2025.12.31~2025.12.31</div>
+    </div>
+  ` : "";
+  box.innerHTML = `<div class="reference-box-title">증빙자료 체크리스트</div><div class="reference-box-body"><div class="reference-box-main">${body}</div>${action}</div>`;
   return box;
 }
 function insertEvidenceReferences(){
   Object.entries(EVIDENCE_REFERENCES).forEach(([step, groups]) => {
     const panel = document.querySelector(`.step-panel[data-step="${step}"]`);
     if (!panel || panel.querySelector(".evidence-reference")) return;
-    const box = buildEvidenceBox(groups);
+    const box = buildEvidenceBox(groups, step);
     const memo = $(`memo${step}`)?.closest(".field");
     const scoreBox = panel.querySelector(".score-box");
     if (memo) memo.before(box);
@@ -5615,7 +5695,7 @@ $("adminPasswordInput").addEventListener("keydown", e => {
 });
 $("newCompanyBtn").addEventListener("click", createNewCompany);
 $("backToDashboardBtn").addEventListener("click", showDashboard);
-$("exportCompaniesBtn").addEventListener("click", exportCompaniesCsv);
+$("exportCompaniesBtn")?.addEventListener("click", exportCompaniesCsv);
 $("applyCompanyPasteBtn").addEventListener("click", applyCompanyPaste);
 $("clearCompanyPasteBtn").addEventListener("click", () => {
   $("companyPasteText").value = "";
