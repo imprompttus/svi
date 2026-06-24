@@ -553,7 +553,6 @@
     .innovation-table .group-cell{background:#f8fbff;font-weight:800;color:#21324c}
     .innovation-table .sub-group{background:#fbfdff;font-weight:800;color:#31435f}
     .innovation-table .subject-cell{font-weight:700;text-align:left;padding-left:14px}
-    .subject-check{display:flex;align-items:center;gap:7px;font-weight:800}
     .score-select{min-height:32px;width:auto;min-width:86px;padding:5px 8px;margin-right:4px}
     .compact-indicator .guide-row{
       margin-bottom:10px;
@@ -633,6 +632,26 @@
     .print-supplement td:nth-child(2){
       white-space:pre-line;
       line-height:1.55;
+    }
+    .supplement-list{
+      list-style:none;
+      margin:0;
+      padding:0;
+      white-space:normal;
+    }
+    .supplement-list li{
+      position:relative;
+      margin:0 0 3px 0;
+      padding-left:12px;
+      line-height:1.45;
+      word-break:keep-all;
+      overflow-wrap:anywhere;
+    }
+    .supplement-list li::before{
+      content:"-";
+      position:absolute;
+      left:0;
+      top:0;
     }
     .supplement-edit{
       width:100%;
@@ -1675,48 +1694,48 @@
                 <tr>
                   <td class="group-cell" rowspan="6">과정의 혁신</td>
                   <td class="sub-group">인력 투입</td>
-                  <td class="subject-cell"><label class="subject-check"><input type="checkbox" id="i14StaffCheck"> 전문인력 도입</label></td>
+                  <td class="subject-cell">전문인력 도입</td>
                   <td><textarea id="i14Staff" placeholder="예) 제품·서비스 개발 또는 조직 운영혁신을 위해 전문인력을 채용하거나 외부 전문가 자문을 연계"></textarea></td>
                 </tr>
                 <tr>
                   <td class="sub-group">예산 투입</td>
-                  <td class="subject-cell"><label class="subject-check"><input type="checkbox" id="i14RnDCheck"> R&D 투자</label></td>
+                  <td class="subject-cell">R&D 투자</td>
                   <td><textarea id="i14RnD" placeholder="예) 연구개발비, 기술개발비, 신제품 개발, 설비 도입 등 혁신을 위한 예산 투입"></textarea></td>
                 </tr>
                 <tr>
                   <td class="sub-group" rowspan="3">혁신 활동</td>
-                  <td class="subject-cell"><label class="subject-check"><input type="checkbox" id="i14MgmtCheck"> 경영시스템 개선</label></td>
+                  <td class="subject-cell">경영시스템 개선</td>
                   <td><textarea id="i14Mgmt" placeholder="예) ERP·회계프로그램 도입, 업무 프로세스 개선, 성과관리체계 구축, 조직개편 등"></textarea></td>
                 </tr>
                 <tr>
-                  <td class="subject-cell"><label class="subject-check"><input type="checkbox" id="i14CommCheck"> 기업 내·외부 소통노력</label></td>
+                  <td class="subject-cell">기업 내·외부 소통노력</td>
                   <td><textarea id="i14Comm" placeholder="예) Bottom-up 방식의 사내 제안제도 운영, 내부 의견수렴 회의, 고객·이용자 의견조사, 지역사회 협의 등"></textarea></td>
                 </tr>
                 <tr>
-                  <td class="subject-cell"><label class="subject-check"><input type="checkbox" id="i14TechCheck"> 기술 개발</label></td>
+                  <td class="subject-cell">기술 개발</td>
                   <td><textarea id="i14Tech" placeholder="예) 기업부설연구소, 연구개발전담부서, 전담 작업공간 설치, 신제품 출시, 기술 개발 등"></textarea></td>
                 </tr>
                 <tr>
-                  <td class="sub-group" colspan="2"><label class="subject-check"><input type="checkbox" id="i14ProcEtcCheck"> 기타</label></td>
+                  <td class="sub-group" colspan="2">기타</td>
                   <td><textarea id="i14ProcEtc" placeholder="예) 위 항목에 포함되지 않는 기업의 혁신 노력"></textarea></td>
                 </tr>
 
                 <tr>
                   <td class="group-cell" rowspan="4">혁신의 결과</td>
                   <td class="sub-group" rowspan="4">혁신 결과</td>
-                  <td class="subject-cell"><label class="subject-check"><input type="checkbox" id="i14FinCheck"> 재무 성과</label></td>
+                  <td class="subject-cell">재무 성과</td>
                   <td><textarea id="i14Fin" placeholder="예) 투자 유치, 지원사업 선정, 영업이익·당기순이익 증가, 비용 감소 등"></textarea></td>
                 </tr>
                 <tr>
-                  <td class="subject-cell"><label class="subject-check"><input type="checkbox" id="i14CustomerCheck"> 고객 만족</label></td>
+                  <td class="subject-cell">고객 만족</td>
                   <td><textarea id="i14Customer" placeholder="예) 이용자 수 증가, 사회서비스 제공 대상 확대, 재구매율 증가, 고객만족도 증가 등"></textarea></td>
                 </tr>
                 <tr>
-                  <td class="subject-cell"><label class="subject-check"><input type="checkbox" id="i14TechResultCheck"> 기술적 성과</label></td>
+                  <td class="subject-cell">기술적 성과</td>
                   <td><textarea id="i14TechResult" placeholder="예) 특허권·실용신안권·저작권 출원·등록, ISO 등 국제 인증, 기술 관련 성과 등"></textarea></td>
                 </tr>
                 <tr>
-                  <td class="subject-cell"><label class="subject-check"><input type="checkbox" id="i14ResultEtcCheck"> 기타</label></td>
+                  <td class="subject-cell">기타</td>
                   <td><textarea id="i14ResultEtc" placeholder="예) 위 항목에 포함되지 않는 혁신의 결과를 정량적으로 기재"></textarea></td>
                 </tr>
               </tbody>
@@ -3134,7 +3153,6 @@ function isIndicator13Done(){
 }
 function isIndicator14Done(){
   return ["i14Staff","i14RnD","i14Mgmt","i14Comm","i14Tech","i14ProcEtc","i14Fin","i14Customer","i14TechResult","i14ResultEtc","memo14"].some(id => $(id).value.trim())
-    || ["i14StaffCheck","i14RnDCheck","i14MgmtCheck","i14CommCheck","i14TechCheck","i14ProcEtcCheck","i14FinCheck","i14CustomerCheck","i14TechResultCheck","i14ResultEtcCheck"].some(id => $(id).checked)
     || num($("i14ProcessScore").value)
     || num($("i14ResultScore").value);
 }
@@ -4615,8 +4633,8 @@ function updateIndicator13(){
 }
 
 function updateIndicator14(){
-  const process = ["i14Staff","i14RnD","i14Mgmt","i14Comm","i14Tech","i14ProcEtc"].some(id => $(id).value.trim()) || ["i14StaffCheck","i14RnDCheck","i14MgmtCheck","i14CommCheck","i14TechCheck","i14ProcEtcCheck"].some(id => $(id).checked);
-  const result = ["i14Fin","i14Customer","i14TechResult","i14ResultEtc"].some(id => $(id).value.trim()) || ["i14FinCheck","i14CustomerCheck","i14TechResultCheck","i14ResultEtcCheck"].some(id => $(id).checked);
+  const process = ["i14Staff","i14RnD","i14Mgmt","i14Comm","i14Tech","i14ProcEtc"].some(id => $(id).value.trim());
+  const result = ["i14Fin","i14Customer","i14TechResult","i14ResultEtc"].some(id => $(id).value.trim());
   const processScore = num($("i14ProcessScore").value);
   const resultScore = num($("i14ResultScore").value);
   const totalScore = processScore + resultScore;
@@ -4692,6 +4710,14 @@ function withReviewerMemo(text, indicatorNo){
   const base = String(text || "").trim();
   if (!memo) return base || "-";
   return [base, `- ${memo}`].filter(Boolean).join("\n");
+}
+function renderSupplementListHtml(text){
+  const lines = String(text || "-")
+    .split(/\r?\n/)
+    .map(line => line.trim())
+    .filter(Boolean);
+  const items = lines.length ? lines : ["-"];
+  return `<ul class="supplement-list">${items.map(line => `<li>${escapeHtml(line.replace(/^-\s*/, ""))}</li>`).join("")}</ul>`;
 }
 function joinNeeds(items){
   return items.filter(Boolean).map(item => `- ${item}`).join("\n");
@@ -4888,7 +4914,7 @@ function renderPrintReport(rows, total, grade){
   `;
   $("printGrade").innerHTML = `<span class="print-grade-value ${getGradeClass(grade)}">${escapeHtml(grade)}</span>`;
   $("printSupplementBody").innerHTML = rows.map((r, idx) => `
-    <tr><td>${escapeHtml(r.name)}</td><td class="supplement-cell">${escapeHtml(getSupplementDisplayText(idx + 1, r))}</td></tr>
+    <tr><td>${escapeHtml(r.name)}</td><td class="supplement-cell">${renderSupplementListHtml(getSupplementDisplayText(idx + 1, r))}</td></tr>
   `).join("");
 }
 function renderResults(){
@@ -5364,7 +5390,7 @@ function collectData(){
 
     i12ZeroSales2024:$("i12ZeroSales2024").checked, i12Profit2025:$("i12Profit2025").value, i12Profit2024Input:$("i12Profit2024Input").value, memo12:$("memo12").value,
     i13NoWorkers2025:$("i13NoWorkers2025").checked, i13ZeroSales2024:$("i13ZeroSales2024").checked, i13ZeroWorkersAny:$("i13ZeroWorkersAny").checked, i13Sales2025:$("i13Sales2025").value, i13Hours2025:$("i13Hours2025").value, i13Hours2025Manual:$("i13Hours2025").dataset.manual === "true", i13Sales2024Input:$("i13Sales2024Input").value, i13Hours2024:$("i13Hours2024").value, i13Hours2024Manual:$("i13Hours2024").dataset.manual === "true", memo13:$("memo13").value,
-    i14ProcessScore:$("i14ProcessScore").value, i14ResultScore:$("i14ResultScore").value, i14StaffCheck:$("i14StaffCheck").checked, i14RnDCheck:$("i14RnDCheck").checked, i14MgmtCheck:$("i14MgmtCheck").checked, i14CommCheck:$("i14CommCheck").checked, i14TechCheck:$("i14TechCheck").checked, i14ProcEtcCheck:$("i14ProcEtcCheck").checked, i14FinCheck:$("i14FinCheck").checked, i14CustomerCheck:$("i14CustomerCheck").checked, i14TechResultCheck:$("i14TechResultCheck").checked, i14ResultEtcCheck:$("i14ResultEtcCheck").checked, i14Staff:$("i14Staff").value, i14RnD:$("i14RnD").value, i14Mgmt:$("i14Mgmt").value, i14Comm:$("i14Comm").value, i14Tech:$("i14Tech").value, i14ProcEtc:$("i14ProcEtc").value, i14Fin:$("i14Fin").value, i14Customer:$("i14Customer").value, i14TechResult:$("i14TechResult").value, i14ResultEtc:$("i14ResultEtc").value, memo14:$("memo14").value
+    i14ProcessScore:$("i14ProcessScore").value, i14ResultScore:$("i14ResultScore").value, i14Staff:$("i14Staff").value, i14RnD:$("i14RnD").value, i14Mgmt:$("i14Mgmt").value, i14Comm:$("i14Comm").value, i14Tech:$("i14Tech").value, i14ProcEtc:$("i14ProcEtc").value, i14Fin:$("i14Fin").value, i14Customer:$("i14Customer").value, i14TechResult:$("i14TechResult").value, i14ResultEtc:$("i14ResultEtc").value, memo14:$("memo14").value
   };
 }
 function applyData(data){
