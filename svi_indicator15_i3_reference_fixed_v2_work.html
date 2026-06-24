@@ -1649,7 +1649,6 @@
           <div class="table-card" style="margin-top:16px;"><table><thead><tr><th>노동생산성 성장률 [((C-F) ÷ F) x 100 %]</th></tr></thead><tbody><tr><td><input id="i13GrowthRate" type="text" value="0" readonly></td></tr></tbody></table></div>
 
           <div class="summary" id="i13Summary">우리 기업의 시간당 노동생산성 시간당 매출액이 확인되지 않습니다. 우리 기업의 노동생산성 성장률이 확인되지 않습니다.</div>
-          <div class="field" style="margin-top:12px;"><label>코멘트</label><textarea id="i13Comment" placeholder="예외점수 해당 시 필수 작성, 그 외 선택 작성"></textarea></div>
           <div class="field" style="margin-top:16px;"><label>지표 13 메모</label><textarea id="memo13"></textarea></div>
           <div class="score-box"><div class="score-line"><span>2025년 노동생산성 구간</span><strong id="i13BandText">미산정</strong></div><div class="score-line"><span>노동생산성 점수</span><strong id="i13BandScoreText">0 / 3</strong></div><div class="score-line"><span>노동생산성 성장률</span><strong id="i13GrowthText">0%</strong></div><div class="score-line"><span>노동생산성 성장률 점수</span><strong id="i13GrowthScoreText">0 / 2</strong></div><div class="score-line"><span>지표 13 총점</span><strong class="score-total"><span id="score13">0</span> / 5</strong></div></div>
         </section>
@@ -3131,7 +3130,7 @@ function isIndicator11Done(){ return $("i11ZeroSales2024").checked || num($("i11
 function isIndicator12Done(){ return $("i12ZeroSales2024").checked || $("i12Profit2025").value || $("i12Profit2024Input").value; }
 
 function isIndicator13Done(){
-  return $("i13NoWorkers2025").checked || $("i13ZeroSales2024").checked || $("i13ZeroWorkersAny").checked || num($("i13Hours2025").value) || num($("i13Hours2024").value) || $("i13Comment").value.trim() || $("memo13").value.trim();
+  return $("i13NoWorkers2025").checked || $("i13ZeroSales2024").checked || $("i13ZeroWorkersAny").checked || num($("i13Hours2025").value) || num($("i13Hours2024").value) || $("memo13").value.trim();
 }
 function isIndicator14Done(){
   return ["i14Staff","i14RnD","i14Mgmt","i14Comm","i14Tech","i14ProcEtc","i14Fin","i14Customer","i14TechResult","i14ResultEtc","memo14"].some(id => $(id).value.trim())
@@ -5364,7 +5363,7 @@ function collectData(){
     i11ZeroSales2024:$("i11ZeroSales2024").checked, i11Sales2025:$("i11Sales2025").value, i11Sales2024Input:$("i11Sales2024Input").value, memo11:$("memo11").value,
 
     i12ZeroSales2024:$("i12ZeroSales2024").checked, i12Profit2025:$("i12Profit2025").value, i12Profit2024Input:$("i12Profit2024Input").value, memo12:$("memo12").value,
-    i13NoWorkers2025:$("i13NoWorkers2025").checked, i13ZeroSales2024:$("i13ZeroSales2024").checked, i13ZeroWorkersAny:$("i13ZeroWorkersAny").checked, i13Sales2025:$("i13Sales2025").value, i13Hours2025:$("i13Hours2025").value, i13Hours2025Manual:$("i13Hours2025").dataset.manual === "true", i13Sales2024Input:$("i13Sales2024Input").value, i13Hours2024:$("i13Hours2024").value, i13Hours2024Manual:$("i13Hours2024").dataset.manual === "true", i13Comment:$("i13Comment").value, memo13:$("memo13").value,
+    i13NoWorkers2025:$("i13NoWorkers2025").checked, i13ZeroSales2024:$("i13ZeroSales2024").checked, i13ZeroWorkersAny:$("i13ZeroWorkersAny").checked, i13Sales2025:$("i13Sales2025").value, i13Hours2025:$("i13Hours2025").value, i13Hours2025Manual:$("i13Hours2025").dataset.manual === "true", i13Sales2024Input:$("i13Sales2024Input").value, i13Hours2024:$("i13Hours2024").value, i13Hours2024Manual:$("i13Hours2024").dataset.manual === "true", memo13:$("memo13").value,
     i14ProcessScore:$("i14ProcessScore").value, i14ResultScore:$("i14ResultScore").value, i14StaffCheck:$("i14StaffCheck").checked, i14RnDCheck:$("i14RnDCheck").checked, i14MgmtCheck:$("i14MgmtCheck").checked, i14CommCheck:$("i14CommCheck").checked, i14TechCheck:$("i14TechCheck").checked, i14ProcEtcCheck:$("i14ProcEtcCheck").checked, i14FinCheck:$("i14FinCheck").checked, i14CustomerCheck:$("i14CustomerCheck").checked, i14TechResultCheck:$("i14TechResultCheck").checked, i14ResultEtcCheck:$("i14ResultEtcCheck").checked, i14Staff:$("i14Staff").value, i14RnD:$("i14RnD").value, i14Mgmt:$("i14Mgmt").value, i14Comm:$("i14Comm").value, i14Tech:$("i14Tech").value, i14ProcEtc:$("i14ProcEtc").value, i14Fin:$("i14Fin").value, i14Customer:$("i14Customer").value, i14TechResult:$("i14TechResult").value, i14ResultEtc:$("i14ResultEtc").value, memo14:$("memo14").value
   };
 }
