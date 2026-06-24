@@ -743,30 +743,54 @@
       border:1px solid var(--line);
       border-radius:18px;
       box-shadow:var(--shadow);
-      padding:26px;
+      padding:34px 32px;
+      text-align:center;
+    }
+    .login-card .field label{
+      justify-content:center;
+      font-size:15px;
+      margin-bottom:10px;
+    }
+    .sr-only{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
     }
     #adminPasswordInput{
-      min-height:48px;
-      font-size:16px;
-      padding:12px 14px;
+      min-height:54px;
+      font-size:18px;
+      padding:13px 16px;
+      text-align:center;
     }
     .login-title{
-      margin:0 0 8px;
+      margin:0 0 10px;
       color:var(--navy);
-      font-size:24px;
+      font-size:30px;
       font-weight:900;
       letter-spacing:0;
     }
     .login-sub{
-      margin:0 0 18px;
+      margin:0 0 24px;
       color:var(--muted);
-      font-size:13px;
+      font-size:17px;
       line-height:1.55;
     }
     .login-actions{
       display:flex;
       gap:8px;
-      margin-top:12px;
+      justify-content:center;
+      margin-top:16px;
+    }
+    .login-actions .btn{
+      min-height:46px;
+      padding:12px 24px;
+      font-size:16px;
     }
     .login-error{
       min-height:18px;
@@ -817,18 +841,51 @@
       padding:9px 13px;
       border:1px solid #cddbed;
       border-radius:10px;
-      background:#fff;
       color:#16385a;
       font-size:13px;
       font-weight:900;
       text-decoration:none;
-      box-shadow:0 7px 18px rgba(31,79,130,.05);
+      background:linear-gradient(135deg,#e9f4ff,#dceeff) left / 0% 100% no-repeat,#fff;
       white-space:nowrap;
+      transform:translateY(0) scale(1);
+      transition:background-size .24s ease, transform .18s ease, border-color .18s ease, color .18s ease;
     }
     .dashboard-link-btn:hover{
       border-color:#8fb7ff;
-      background:#f7fbff;
+      background-size:100% 100%;
       color:#0f4d91;
+      transform:translateY(-3px) scale(1.035);
+    }
+    .dashboard-link-btn:active{
+      transform:translateY(0) scale(.98);
+    }
+    #newCompanyBtn,
+    #backToDashboardBtn{
+      transition:transform .18s ease, filter .18s ease;
+    }
+    #newCompanyBtn:hover,
+    #backToDashboardBtn:hover{
+      transform:translateY(-3px) scale(1.04);
+      filter:saturate(1.12);
+    }
+    #newCompanyBtn:active,
+    #backToDashboardBtn:active{
+      transform:translateY(0) scale(.98);
+    }
+    @media (prefers-reduced-motion: reduce){
+      .dashboard-link-btn,
+      #newCompanyBtn,
+      #backToDashboardBtn{
+        transition:none;
+      }
+      .dashboard-link-btn:hover,
+      .dashboard-link-btn:active,
+      #newCompanyBtn:hover,
+      #newCompanyBtn:active,
+      #backToDashboardBtn:hover,
+      #backToDashboardBtn:active{
+        transform:none;
+      }
     }
     .dashboard-card{
       background:rgba(255,255,255,.9);
@@ -1094,10 +1151,10 @@
   <div class="login-view" id="loginView">
     <div class="login-card">
       <h1 class="login-title">SVI 기업 진단 관리</h1>
-      <p class="login-sub">관리자 비밀번호를 입력하면 기업 진단 목록을 확인하고 사이트를 이용할 수 있습니다.</p>
+      <p class="login-sub">비밀번호 입력 후 사이트 이용</p>
       <div class="field">
-        <label>관리자 비밀번호</label>
-        <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="비밀번호 입력">
+        <label class="sr-only">비밀번호</label>
+        <input id="adminPasswordInput" type="password" autocomplete="current-password">
       </div>
       <div class="login-actions">
         <button class="btn primary" id="adminLoginBtn" type="button">로그인</button>
@@ -1116,6 +1173,7 @@
         <div class="dashboard-link-group" aria-label="외부 바로가기">
           <a class="dashboard-link-btn" href="https://www.seis.or.kr/svi/si/mn/siMainPage.do" target="_blank" rel="noopener noreferrer">사회적가치 포털</a>
           <a class="dashboard-link-btn" href="https://docs.google.com/spreadsheets/d/1qNWCt306t_ChoGoGQyKcDeUnDvlKvvAazMyP89nM-Zw/edit?gid=1101761887#gid=1101761887" target="_blank" rel="noopener noreferrer">SVI 시트</a>
+          <a class="dashboard-link-btn" href="https://docs.google.com/spreadsheets/d/1qNWCt306t_ChoGoGQyKcDeUnDvlKvvAazMyP89nM-Zw/edit?gid=1596603889#gid=1596603889" target="_blank" rel="noopener noreferrer">상담일지</a>
           <a class="dashboard-link-btn" href="https://drive.google.com/drive/folders/1HA87TV8yG90jJNT_gI9t_F8D4x9M9ZHZ" target="_blank" rel="noopener noreferrer">심화코칭 업로드</a>
         </div>
         <button class="btn primary" id="newCompanyBtn" type="button">기업 추가</button>
@@ -1150,7 +1208,7 @@
     <main class="panel">
       <div class="app-company-bar">
         <div>현재 기업: <strong id="activeCompanyLabel">새 기업</strong></div>
-        <button class="mini-btn" id="backToDashboardBtn" type="button">기업 목록</button>
+        <button class="btn primary" id="backToDashboardBtn" type="button">기업 목록</button>
       </div>
       <div class="panel-head">
         <div class="panel-head-title">
