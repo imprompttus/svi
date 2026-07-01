@@ -507,22 +507,54 @@
       max-width: 190px;
     }
 
+    .owner-cell {
+      min-width: 76px;
+    }
+
+    .owner-display {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      height: 28px;
+      max-width: 74px;
+      padding: 2px 0;
+      border: 0;
+      background: transparent;
+      color: #184334;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .owner-display::after {
+      content: "▾";
+      color: #7a8580;
+      font-size: 10px;
+      line-height: 1;
+    }
+
+    .owner-display:hover {
+      color: var(--green);
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
     .owner-select {
-      width: 92px;
+      width: 86px;
       min-width: 86px;
       border: 1px solid var(--line);
-      border-radius: 8px;
+      border-radius: 7px;
       background: #fff;
       color: var(--ink);
-      padding: 7px 6px;
-      height: 34px;
+      padding: 4px 5px;
+      height: 28px;
       font-size: 12px;
     }
 
-    .owner-cell {
-      display: grid;
-      gap: 4px;
-      min-width: 92px;
+    .owner-select.hidden {
+      display: none;
     }
 
     .history-row {
@@ -626,9 +658,9 @@
 
     th:nth-child(5),
     td:nth-child(5) {
-      width: 108px;
-      min-width: 108px;
-      max-width: 108px;
+      width: 88px;
+      min-width: 88px;
+      max-width: 88px;
     }
 
     th:nth-child(6),
@@ -1588,7 +1620,7 @@
     }
 
     function ownerOptions() {
-      return [...new Set([...DEFAULT_OWNERS, ...uniqueValues(["서류검토 담당자"])])].filter(Boolean).sort((a, b) => a.localeCompare(b, "ko"));
+      return CURRENT_OWNERS;
     }
 
     function isCurrentOwner(owner) {
@@ -1781,17 +1813,20 @@
       body.innerHTML = list.map((row) => {
         const state = statusOf(row);
         const selectedOwner = currentOwnerValue(row);
-        const ownerChoices = [...new Set([...owners, selectedOwner].filter(Boolean))];
+        const ownerChoices = owners;
         const key = recordKey(row);
         const ownerSelect = `
-          <select class="owner-select" data-owner-key="${escapeHtml(key)}" aria-label="담당자 선택">
+          <select class="owner-select hidden" data-owner-key="${escapeHtml(key)}" aria-label="담당자 선택">
             <option value="">미지정</option>
             ${ownerChoices.map((owner) => `<option value="${escapeHtml(owner)}" ${owner === selectedOwner ? "selected" : ""}>${escapeHtml(owner)}</option>`).join("")}
           </select>
         `;
         const ownerCell = row._historyRow
           ? `<span class="history-owner-text">${escapeHtml(value(row, ["서류검토 담당자"]) || "-")}</span>`
-          : `<div class="owner-cell">${ownerSelect}</div>`;
+          : `<div class="owner-cell">
+              <button class="owner-display" data-owner-open="${escapeHtml(key)}" type="button">${escapeHtml(selectedOwner || "미지정")}</button>
+              ${ownerSelect}
+            </div>`;
         const coachingCheck = `<input class="coaching-check" type="checkbox" data-coaching-key="${escapeHtml(key)}" aria-label="심화코칭 해당" ${isCheckedValue(value(row, ["심화코칭"])) ? "checked" : ""}>`;
         return `
           <tr class="${row._historyRow ? "history-row" : "current-row"}">
@@ -1980,6 +2015,24 @@
       if (event.target.classList.contains("coaching-check")) {
         setCoachingOverride(event.target.dataset.coachingKey, event.target.checked);
       }
+    });
+    $("companyRows").addEventListener("click", (event) => {
+      const trigger = event.target.closest(".owner-display");
+      if (!trigger) return;
+      const cell = trigger.closest(".owner-cell");
+      const select = cell?.querySelector(".owner-select");
+      if (!select) return;
+      trigger.classList.add("hidden");
+      select.classList.remove("hidden");
+      select.focus();
+    });
+    $("companyRows").addEventListener("focusout", (event) => {
+      if (!event.target.classList.contains("owner-select")) return;
+      const cell = event.target.closest(".owner-cell");
+      window.setTimeout(() => {
+        event.target.classList.add("hidden");
+        cell?.querySelector(".owner-display")?.classList.remove("hidden");
+      }, 120);
     });
     $("fileInput").addEventListener("change", async (event) => {
       const file = event.target.files[0];
