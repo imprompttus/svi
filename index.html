@@ -2731,12 +2731,22 @@ const INDUSTRY_RULES = [
 ];
 
 const INDUSTRY_AVG_MAP = {
+  "농업, 임업 및 어업(A)": 6869606,
+  "제조업(C)": 14805798,
+  "전기, 가스, 증기 및 공기조절 공급업(D)": 19599882,
+  "수도, 하수, 폐기물 처리, 원료 재생업(E)": 9718272,
+  "건설업(F)": 25666054,
+  "도매 및 소매업(G)": 22361504,
+  "운수 및 창고업(H)": 40415103,
+  "숙박 및 음식점업(I)": 3278028,
+  "정보통신업(J)": 25880260,
+  "부동산업(L)": 131988105,
+  "전문, 과학 및 기술 서비스업(M)": 19695949,
+  "사업시설 관리, 사업 지원 및 임대 서비스업(N)": 10719301,
   "교육 서비스업(P)": 27036591,
-  "보건업 및 사회복지 서비스업(Q)": 35000000,
-  "제조업(C)": 42000000,
-  "도매 및 소매업(G)": 22000000,
-  "정보통신업(J)": 28000000,
-  "숙박 및 음식점업(I)": 18000000
+  "보건업 및 사회복지 서비스업(Q)": 81102146,
+  "예술, 스포츠 및 여가관련 서비스업(R)": 21707247,
+  "협회 및 단체, 수리 및 기타 개인 서비스업(S)": 11822777
 };
 
 const WAGE_BANDS = {
@@ -4558,7 +4568,7 @@ function buildIndicator6Summary({ internalScore, externalScore, etcScore, extern
   return lines.join("\n");
 }
 function updateIndicator6(){
-  const avg = INDUSTRY_AVG_MAP[$("industry").value] || 20000000;
+  const avg = INDUSTRY_AVG_MAP[$("industry").value] || 23301888;
   const welfare = num($("i6WelfareAmount").value), bonus = num($("i6BonusAmount").value), facility = num($("i6FacilityAmount").value);
   const welfareScore = welfare > 0 ? 1 : 0;
   const bonusScore = bonus > 0 ? 1 : 0;
