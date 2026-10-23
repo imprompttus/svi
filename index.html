@@ -1107,6 +1107,7 @@
     .transfer-note-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
     .transfer-note-field label{display:block;margin-bottom:6px;color:#24384d;font-size:13px;font-weight:900}
     .transfer-note-field select,.transfer-note-field textarea{width:100%}
+    .transfer-note-paste{min-height:190px;resize:vertical;line-height:1.55}
     .transfer-note-special{min-height:110px;resize:vertical;line-height:1.65}
     .transfer-note-preview{min-height:360px;resize:vertical;line-height:1.7;font-family:"Malgun Gothic","Noto Sans KR",sans-serif}
     .transfer-note-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px}
@@ -1827,20 +1828,18 @@
       <div class="doc-review-modal-top">
         <div>
           <h2 class="doc-review-modal-title" id="transferNoteTitle">기타 전달사항 복사용</h2>
-          <div class="doc-review-modal-sub">기업과 서류검토자를 선택하면 등록된 기업정보로 복사용 문구를 자동 작성합니다.</div>
+          <div class="doc-review-modal-sub">시스템에서 복사한 기업정보를 붙여넣고 서류검토자를 선택하면 복사용 문구를 자동 작성합니다.</div>
         </div>
         <button class="btn" id="closeTransferNoteBtn" type="button">닫기</button>
       </div>
       <div class="table-card doc-review-panel">
-        <div class="transfer-note-grid">
-          <div class="transfer-note-field">
-            <label for="transferCompanySelect">기업 선택</label>
-            <select id="transferCompanySelect"><option value="">기업을 선택하세요</option></select>
-          </div>
-          <div class="transfer-note-field">
-            <label for="transferReviewerSelect">담당자명</label>
-            <select id="transferReviewerSelect"><option value="">담당자를 선택하세요</option></select>
-          </div>
+        <div class="transfer-note-field">
+          <label for="transferSourcePaste">시스템 기업정보 붙여넣기</label>
+          <textarea class="transfer-note-paste" id="transferSourcePaste" placeholder="시스템에서 복사한 기업정보 전체를 여기에 붙여넣으세요."></textarea>
+        </div>
+        <div class="transfer-note-field" style="max-width:440px;margin:12px 0;">
+          <label for="transferReviewerSelect">담당자명</label>
+          <select id="transferReviewerSelect"><option value="">담당자를 선택하세요</option></select>
         </div>
         <div class="transfer-note-field">
           <label for="transferSpecialNotes">특이사항 · 한 줄에 하나씩 입력</label>
@@ -1851,7 +1850,7 @@
           <textarea class="transfer-note-preview" id="transferNotePreview" readonly></textarea>
         </div>
         <div class="transfer-note-actions">
-          <div class="transfer-note-status" id="transferNoteStatus">기업과 담당자를 선택하세요.</div>
+          <div class="transfer-note-status" id="transferNoteStatus">기업정보를 붙여넣고 담당자를 선택하세요.</div>
           <button class="btn primary" id="copyTransferNoteBtn" type="button">전체 복사</button>
         </div>
       </div>
@@ -6472,18 +6471,60 @@ const TRANSFER_NOTE_REVIEWERS = [
   {name:"이지혜", phone:"010-3535-4621"},
   {name:"이주현", phone:"010-6645-9372"}
 ];
+function cleanTransferPasteCell(value){
+  return String(value || "")
+    .replace(/<br\s*\/?\s*>/gi, " ")
+    .replace(/&#xA;|&#10;/gi, " ")
+    .replace(/&#x20;|&nbsp;/gi, " ")
+    .replace(/\*\*/g, "")
+    .replace(/\\([.~])/g, "$1")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+function parseTransferPastedData(raw){
+  const text = String(raw || "").replace(/\r/g, "");
+  const lines = text.split("\n").map(line => line.trim()).filter(Boolean);
+  const labelKeys = new Map([
+    ["기업명","companyName"],["대표자명","ceoName"],["조직유형","orgType"],["사회적목적","socialPurpose"],
+    ["신청주업종","industryApplied"],["측정주업종","industryMeasured"],["주업종","industryApplied"],
+    ["기업규모","companySize"],["측정2025년매출액","directSales2025"]
+  ]);
+  const data = {};
+  lines.forEach(line => {
+    const cells = (line.includes("|") ? line.split("|") : line.split(/\t+/)).map(cleanTransferPasteCell).filter(cell => cell && !/^:?-{2,}:?$/.test(cell));
+    cells.forEach((cell, index) => {
+      const key = labelKeys.get(normalizePasteLabel(cell));
+      if (!key) return;
+      const value = cells[index + 1] || "";
+      if (value && !labelKeys.has(normalizePasteLabel(value))) data[key] = value;
+    });
+  });
+  const getYearValue = labels => {
+    for (const line of lines) {
+      const cells = (line.includes("|") ? line.split("|") : line.split(/\t+/)).map(cleanTransferPasteCell).filter(Boolean);
+      if (!cells.some(cell => labels.includes(normalizePasteLabel(cell)))) continue;
+      const values = cells.flatMap(cell => cell.match(/^-?[\d,]+(?:\.\d+)?$/) || []).map(cleanNumber);
+      if (values.length >= 3) return values[values.length - 1];
+    }
+    return "";
+  };
+  data.industry = data.industryMeasured || data.industryApplied || "";
+  data.sales2025 = getYearValue(["매출액"]) || cleanNumber(data.directSales2025);
+  data.profit2025 = getYearValue(["영업이익"]);
+  data.worker2025 = getYearValue(["총근로자수","총근로자수"]);
+  data.weak2025 = getYearValue(["취약계층"]);
+  return data;
+}
 function getTransferCompanySize(data){
+  const pasted = String(data?.companySize || "").match(/소기업|중기업/);
+  if (pasted) return pasted[0];
   const industry = String(data?.industry || "");
   const sales = num(data?.sales2025);
   const rule = INDUSTRY_RULES.find(item => item.name === industry);
   if (!rule || rule.limit == null) return "기업규모 확인 필요";
   return sales <= rule.limit ? "소기업" : "중기업";
 }
-function getTransferWorkerCounts(data){
-  const rows = Array.isArray(data?.workerRows2025) ? data.workerRows2025.filter(row => row && row.paid !== false && (row.name || row.weak || num(row.pay) || num(row.hours))) : [];
-  if (rows.length) return {workers:rows.length, weak:rows.filter(row => row.weak).length};
-  return {workers:num(data?.worker2025), weak:num(data?.weak2025)};
-}
+function getTransferWorkerCounts(data){ return {workers:num(data?.worker2025), weak:num(data?.weak2025)}; }
 function getTransferObligationText(data){
   const purpose = String(data?.socialPurpose || "").trim();
   if (["일자리제공형","지역사회공헌형-가형","혼합형"].includes(purpose)) return "취약계층 고용의무 있음";
@@ -6491,35 +6532,31 @@ function getTransferObligationText(data){
   return "취약계층 고용의무 확인 필요";
 }
 function renderTransferNote(){
-  const companyId = $("transferCompanySelect")?.value || "";
   const reviewerName = $("transferReviewerSelect")?.value || "";
-  const record = getCompanies().find(company => company.id === companyId);
-  const data = record?.data || {};
+  const raw = $("transferSourcePaste")?.value || "";
+  const data = parseTransferPastedData(raw);
   const reviewer = TRANSFER_NOTE_REVIEWERS.find(item => item.name === reviewerName);
   const notes = String($("transferSpecialNotes")?.value || "").split(/\r?\n/).map(line => line.trim()).filter(Boolean).slice(0,3);
   while (notes.length < 3) notes.push("");
-  if (!record) {
+  if (!raw.trim() || !data.companyName) {
     $("transferNotePreview").value = "";
-    $("transferNoteStatus").textContent = "기업을 선택하세요.";
+    $("transferNoteStatus").textContent = raw.trim() ? "기업명을 인식하지 못했습니다. 기업정보 전체를 다시 붙여넣어주세요." : "기업정보를 붙여넣으세요.";
     return;
   }
   const counts = getTransferWorkerCounts(data);
-  const text = `[SVI 기타 전달사항]\n- ${data.companyName || record.name || "-"} 기본 정보\n * 대표자 : ${data.ceoName || record.ceo || "-"}\n * 유형 : ${data.socialPurpose || "-"}\n * 업종 : ${data.industry || "-"}\n * 규모 : ${getTransferCompanySize(data)} / 매출액 ${fmt(num(data.sales2025))}원, 영업이익 ${fmt(num(data.profit2025))}원\n * 유급근로자 고용현황 : ${counts.workers}명 고용 / 취약계층 ${counts.weak}명 (${getTransferObligationText(data)})\n\n- 특이사항\n * ${notes[0]}\n * ${notes[1]}\n * ${notes[2]}\n\n- 서류검토자 : 소셜비즈니스디자인협동조합 ${reviewer?.name || "담당자명"} / ${reviewer?.phone || "담당자연락처"}`;
+  const text = `[SVI 기타 전달사항]\n- ${data.companyName || "-"} 기본 정보\n * 대표자 : ${data.ceoName || "-"}\n * 유형 : ${data.socialPurpose || data.orgType || "-"}\n * 업종 : ${data.industry || "-"}\n * 규모 : ${getTransferCompanySize(data)} / 매출액 ${fmt(num(data.sales2025))}원, 영업이익 ${fmt(num(data.profit2025))}원\n * 유급근로자 고용현황 : ${counts.workers}명 고용 / 취약계층 ${counts.weak}명 (${getTransferObligationText(data)})\n\n- 특이사항\n * ${notes[0]}\n * ${notes[1]}\n * ${notes[2]}\n\n- 서류검토자 : 소셜비즈니스디자인협동조합 ${reviewer?.name || "담당자명"} / ${reviewer?.phone || "담당자연락처"}`;
   $("transferNotePreview").value = text;
   $("transferNoteStatus").textContent = reviewer ? "복사할 문구가 준비되었습니다." : "담당자를 선택하면 문구가 완성됩니다.";
 }
 async function openTransferNoteModal(){
-  if (!companyCacheLoaded) await loadCompaniesFromStore();
-  const companySelect = $("transferCompanySelect");
   const reviewerSelect = $("transferReviewerSelect");
-  const companies = [...getCompanies()].sort((a,b) => String(a.name || "").localeCompare(String(b.name || ""), "ko"));
-  companySelect.innerHTML = `<option value="">기업을 선택하세요</option>${companies.map(company => `<option value="${escapeHtml(company.id)}">${escapeHtml(company.name || "새 기업")}</option>`).join("")}`;
   reviewerSelect.innerHTML = `<option value="">담당자를 선택하세요</option>${TRANSFER_NOTE_REVIEWERS.map(item => `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)} / ${escapeHtml(item.phone)}</option>`).join("")}`;
+  $("transferSourcePaste").value = "";
   $("transferSpecialNotes").value = "";
   $("transferNoteModal").classList.remove("is-hidden");
   $("transferNoteModal").setAttribute("aria-hidden", "false");
   renderTransferNote();
-  setTimeout(() => companySelect.focus(), 0);
+  setTimeout(() => $("transferSourcePaste")?.focus(), 0);
 }
 function closeTransferNoteModal(){
   $("transferNoteModal")?.classList.add("is-hidden");
@@ -7369,7 +7406,7 @@ function fillSample(){
   $("i14ResultScore").value = 4;
 }
 document.addEventListener("input", e => {
-  if (["transferCompanySelect","transferReviewerSelect","transferSpecialNotes"].includes(e.target.id)) {
+  if (["transferSourcePaste","transferReviewerSelect","transferSpecialNotes"].includes(e.target.id)) {
     renderTransferNote();
     return;
   }
@@ -7525,7 +7562,7 @@ document.addEventListener("click", async e => {
   setTimeout(() => { button.textContent = original; }, 900);
 });
 document.addEventListener("change", e => {
-  if (["transferCompanySelect","transferReviewerSelect","transferSpecialNotes"].includes(e.target.id)) {
+  if (["transferSourcePaste","transferReviewerSelect","transferSpecialNotes"].includes(e.target.id)) {
     renderTransferNote();
     return;
   }
