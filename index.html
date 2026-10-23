@@ -1117,25 +1117,7 @@
     .transfer-note-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px}
     .transfer-note-status{color:#52677d;font-size:13px;font-weight:800}
     .transfer-note-head-actions{display:flex;align-items:center;gap:8px}
-    .transfer-guide-wrap{position:relative}
-    .transfer-guide-preview{
-      display:none;
-      position:fixed;
-      left:50%;
-      top:50%;
-      transform:translate(-50%,-50%);
-      z-index:1200;
-      width:min(94vw,1500px);
-      max-height:88vh;
-      padding:10px;
-      border:1px solid #bfd0e2;
-      border-radius:14px;
-      background:#fff;
-      box-shadow:0 24px 70px rgba(15,39,66,.34);
-      pointer-events:none;
-    }
-    .transfer-guide-preview img{display:block;width:100%;max-height:calc(88vh - 20px);object-fit:contain;border-radius:8px}
-    .transfer-guide-wrap:hover .transfer-guide-preview{display:block}
+    .transfer-note-head-actions .btn{text-decoration:none}
     @media (max-width:760px){.transfer-note-grid{grid-template-columns:1fr}}
     .print-report{display:none}
     .print-page{
@@ -1872,12 +1854,7 @@
           <div class="doc-review-modal-sub">시스템에서 복사한 기업정보를 붙여넣고 서류검토자를 선택하면 복사용 문구를 자동 작성합니다.</div>
         </div>
         <div class="transfer-note-head-actions">
-          <div class="transfer-guide-wrap">
-            <button class="btn primary" id="transferGuideBtn" type="button" aria-label="기타 전달사항 적용방법 보기">적용방법</button>
-            <div class="transfer-guide-preview" role="img" aria-label="기타 전달사항 복사용 사용방법 안내 이미지">
-              <img src="assets/transfer-note-guide.png" alt="시스템 신청서 기업정보를 복사해 기타 전달사항 복사용 창에 붙여넣는 방법">
-            </div>
-          </div>
+          <a class="btn primary" id="transferGuideBtn" href="assets/transfer-note-guide.png" target="_blank" rel="noopener noreferrer" aria-label="기타 전달사항 적용방법 새 창으로 보기">적용방법</a>
           <button class="btn" id="closeTransferNoteBtn" type="button">닫기</button>
         </div>
       </div>
