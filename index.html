@@ -1837,6 +1837,9 @@
           <label for="transferSourcePaste">시스템 기업정보 붙여넣기</label>
           <textarea class="transfer-note-paste" id="transferSourcePaste" placeholder="시스템에서 복사한 기업정보 전체를 여기에 붙여넣으세요."></textarea>
         </div>
+        <div style="margin-top:10px;">
+          <button class="btn primary" id="applyTransferSourceBtn" type="button">기업정보 적용하기</button>
+        </div>
         <div class="transfer-note-field" style="max-width:440px;margin:12px 0;">
           <label for="transferReviewerSelect">담당자명</label>
           <select id="transferReviewerSelect"><option value="">담당자를 선택하세요</option></select>
@@ -6486,6 +6489,10 @@ function parseTransferPastedData(raw){
     ["기업규모","companySize"],["측정2025년매출액","directSales2025"]
   ]);
   const data = {};
+  const allCells = lines.flatMap(line => {
+    const split = line.includes("|") ? line.split("|") : line.split(/\t+/);
+    return split.map(cleanTransferPasteCell).filter(cell => cell && !/^:?-{2,}:?$/.test(cell));
+  });
   lines.forEach(line => {
     const cells = (line.includes("|") ? line.split("|") : line.split(/\t+/)).map(cleanTransferPasteCell).filter(cell => cell && !/^:?-{2,}:?$/.test(cell));
     cells.forEach((cell, index) => {
@@ -6495,12 +6502,24 @@ function parseTransferPastedData(raw){
       if (value && !labelKeys.has(normalizePasteLabel(value))) data[key] = value;
     });
   });
+  allCells.forEach((cell, index) => {
+    const key = labelKeys.get(normalizePasteLabel(cell));
+    if (!key || data[key]) return;
+    const value = allCells[index + 1] || "";
+    if (value && !labelKeys.has(normalizePasteLabel(value))) data[key] = value;
+  });
   const getYearValue = labels => {
     for (const line of lines) {
       const cells = (line.includes("|") ? line.split("|") : line.split(/\t+/)).map(cleanTransferPasteCell).filter(Boolean);
       if (!cells.some(cell => labels.includes(normalizePasteLabel(cell)))) continue;
       const values = cells.flatMap(cell => cell.match(/^-?[\d,]+(?:\.\d+)?$/) || []).map(cleanNumber);
-      if (values.length >= 3) return values[values.length - 1];
+      if (values.length >= 3) return values[2];
+    }
+    const labelIndex = allCells.findIndex(cell => labels.includes(normalizePasteLabel(cell)));
+    if (labelIndex >= 0) {
+      const values = allCells.slice(labelIndex + 1, labelIndex + 7)
+        .flatMap(cell => cell.match(/^-?[\d,]+(?:\.\d+)?$/) || []).map(cleanNumber);
+      if (values.length >= 3) return values[2];
     }
     return "";
   };
@@ -7434,6 +7453,10 @@ document.addEventListener("click", async e => {
   }
   if (e.target.id === "closeTransferNoteBtn" || e.target.id === "transferNoteModal") {
     closeTransferNoteModal();
+    return;
+  }
+  if (e.target.id === "applyTransferSourceBtn") {
+    renderTransferNote();
     return;
   }
   if (e.target.id === "copyTransferNoteBtn") {
