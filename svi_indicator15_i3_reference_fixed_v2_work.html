@@ -1110,6 +1110,10 @@
     .transfer-note-paste{min-height:190px;resize:vertical;line-height:1.55}
     .transfer-note-special{min-height:110px;resize:vertical;line-height:1.65}
     .transfer-note-preview{min-height:360px;resize:vertical;line-height:1.7;font-family:"Malgun Gothic","Noto Sans KR",sans-serif}
+    .transfer-reviewer-buttons{display:flex;flex-wrap:wrap;gap:8px}
+    .transfer-reviewer-btn{border:1px solid #c9d9e9;background:#fff;color:#24415f;border-radius:10px;padding:9px 14px;font-weight:900;cursor:pointer}
+    .transfer-reviewer-btn:hover{border-color:#2b669d;background:#f0f7ff}
+    .transfer-reviewer-btn.is-selected{border-color:#1f5c91;background:#1f5c91;color:#fff;box-shadow:0 6px 14px rgba(31,92,145,.2)}
     .transfer-note-actions{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px}
     .transfer-note-status{color:#52677d;font-size:13px;font-weight:800}
     @media (max-width:760px){.transfer-note-grid{grid-template-columns:1fr}}
@@ -1840,9 +1844,9 @@
         <div style="margin-top:10px;">
           <button class="btn primary" id="applyTransferSourceBtn" type="button">기업정보 적용하기</button>
         </div>
-        <div class="transfer-note-field" style="max-width:440px;margin:12px 0;">
-          <label for="transferReviewerSelect">담당자명</label>
-          <select id="transferReviewerSelect"><option value="">담당자를 선택하세요</option></select>
+        <div class="transfer-note-field" style="margin:12px 0;">
+          <label>담당자명</label>
+          <div class="transfer-reviewer-buttons" id="transferReviewerButtons" role="group" aria-label="담당자 선택"></div>
         </div>
         <div class="transfer-note-field" style="margin-top:12px;">
           <label for="transferNotePreview">완성 문구</label>
@@ -6494,7 +6498,7 @@ function getTransferCompanySize(data){
 }
 function getTransferWorkerCounts(data){ return {workers:num(data?.worker2025), weak:num(data?.weak2025)}; }
 function renderTransferNote(){
-  const reviewerName = $("transferReviewerSelect")?.value || "";
+  const reviewerName = document.querySelector(".transfer-reviewer-btn.is-selected")?.dataset.reviewer || "";
   const raw = $("transferSourcePaste")?.value || "";
   const data = parseTransferPastedData(raw);
   const reviewer = TRANSFER_NOTE_REVIEWERS.find(item => item.name === reviewerName);
@@ -6509,8 +6513,7 @@ function renderTransferNote(){
   $("transferNoteStatus").textContent = reviewer ? "복사할 문구가 준비되었습니다." : "담당자를 선택하면 문구가 완성됩니다.";
 }
 async function openTransferNoteModal(){
-  const reviewerSelect = $("transferReviewerSelect");
-  reviewerSelect.innerHTML = `<option value="">담당자를 선택하세요</option>${TRANSFER_NOTE_REVIEWERS.map(item => `<option value="${escapeHtml(item.name)}">${escapeHtml(item.name)} / ${escapeHtml(item.phone)}</option>`).join("")}`;
+  $("transferReviewerButtons").innerHTML = TRANSFER_NOTE_REVIEWERS.map(item => `<button class="transfer-reviewer-btn" type="button" data-reviewer="${escapeHtml(item.name)}" aria-pressed="false">${escapeHtml(item.name)}</button>`).join("");
   $("transferSourcePaste").value = "";
   $("transferNoteModal").classList.remove("is-hidden");
   $("transferNoteModal").setAttribute("aria-hidden", "false");
@@ -7365,7 +7368,7 @@ function fillSample(){
   $("i14ResultScore").value = 4;
 }
 document.addEventListener("input", e => {
-  if (["transferSourcePaste","transferReviewerSelect"].includes(e.target.id)) {
+  if (e.target.id === "transferSourcePaste") {
     renderTransferNote();
     return;
   }
@@ -7394,6 +7397,16 @@ document.addEventListener("input", e => {
   }
 });
 document.addEventListener("click", async e => {
+  const reviewerButton = e.target.closest?.(".transfer-reviewer-btn");
+  if (reviewerButton) {
+    document.querySelectorAll(".transfer-reviewer-btn").forEach(button => {
+      const selected = button === reviewerButton;
+      button.classList.toggle("is-selected", selected);
+      button.setAttribute("aria-pressed", String(selected));
+    });
+    renderTransferNote();
+    return;
+  }
   if (e.target.id === "openTransferNoteBtn") {
     await openTransferNoteModal();
     return;
@@ -7411,7 +7424,10 @@ document.addEventListener("click", async e => {
     const ok = text && await copyTextToClipboard(text);
     if (ok) {
       $("transferSourcePaste").value = "";
-      $("transferReviewerSelect").value = "";
+      document.querySelectorAll(".transfer-reviewer-btn").forEach(button => {
+        button.classList.remove("is-selected");
+        button.setAttribute("aria-pressed", "false");
+      });
       $("transferNotePreview").value = "";
       $("transferNoteStatus").textContent = "전체 문구를 복사하고 입력 내용을 초기화했습니다.";
       $("transferSourcePaste").focus();
@@ -7533,7 +7549,7 @@ document.addEventListener("click", async e => {
   setTimeout(() => { button.textContent = original; }, 900);
 });
 document.addEventListener("change", e => {
-  if (["transferSourcePaste","transferReviewerSelect"].includes(e.target.id)) {
+  if (e.target.id === "transferSourcePaste") {
     renderTransferNote();
     return;
   }
