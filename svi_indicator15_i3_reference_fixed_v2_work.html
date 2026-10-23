@@ -1097,7 +1097,7 @@
     .qa-result-title{color:var(--navy);font-size:15px;font-weight:900;line-height:1.45}
     .qa-result-source{flex:0 0 auto;padding:4px 8px;border-radius:999px;background:#173a5e;color:#fff;font-size:11px;font-weight:900}
     .qa-result-question{margin:0 0 9px;padding:9px 11px;border-radius:8px;background:#f2f7fc;color:#163a5e;font-size:13px;font-weight:900;line-height:1.55}
-    .qa-result-answer{color:#26384a;font-size:14px;line-height:1.75;white-space:pre-wrap;word-break:keep-all}
+    .qa-result-answer{max-height:190px;overflow-y:auto;scrollbar-gutter:stable;padding-right:8px;color:#26384a;font-size:14px;line-height:1.75;white-space:pre-wrap;word-break:keep-all}
     .qa-result-answer mark,.qa-result-question mark{background:#fff0a8;color:inherit;border-radius:3px;padding:0 1px}
     .qa-result-foot{margin-top:10px;color:#6b7f94;font-size:12px;font-weight:800}
     .qa-notice{margin-top:14px;padding:10px 12px;border-radius:9px;background:#fff8e8;color:#795d1b;font-size:12px;line-height:1.55}
@@ -6394,7 +6394,10 @@ function scoreQaItem(item, query, tokens){
   });
   if (tokens.length && matched === tokens.length) score += 45;
   score += matched * 5;
-  if (item.kind && /FAQ/.test(item.kind)) score += 5;
+  if (item.question) score += 70;
+  if (item.kind && /FAQ/.test(item.kind)) score += 20;
+  if (item.kind === "서류검토 FAQ") score += 35;
+  if (item.kind === "측정자 매뉴얼") score -= 45;
   return {score, matched};
 }
 function searchQaDocuments(query){
