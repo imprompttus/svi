@@ -6493,12 +6493,6 @@ function getTransferCompanySize(data){
   return sales <= rule.limit ? "소기업" : "중기업";
 }
 function getTransferWorkerCounts(data){ return {workers:num(data?.worker2025), weak:num(data?.weak2025)}; }
-function getTransferObligationText(data){
-  const purpose = String(data?.socialPurpose || "").trim();
-  if (["일자리제공형","지역사회공헌형-가형","혼합형"].includes(purpose)) return "취약계층 고용의무 있음";
-  if (purpose) return "취약계층 고용의무 없음";
-  return "취약계층 고용의무 확인 필요";
-}
 function renderTransferNote(){
   const reviewerName = $("transferReviewerSelect")?.value || "";
   const raw = $("transferSourcePaste")?.value || "";
@@ -6510,7 +6504,7 @@ function renderTransferNote(){
     return;
   }
   const counts = getTransferWorkerCounts(data);
-  const text = `[SVI 기타 전달사항]\n- ${data.companyName || "-"} 기본 정보\n * 대표자 : ${data.ceoName || "-"}\n * 유형 : ${data.socialPurpose || data.orgType || "-"}\n * 업종 : ${data.industry || "-"}\n * 규모 : ${getTransferCompanySize(data)} / 매출액 ${fmt(num(data.sales2025))}원, 영업이익 ${fmt(num(data.profit2025))}원\n * 유급근로자 고용현황 : ${counts.workers}명 고용 / 취약계층 ${counts.weak}명 (${getTransferObligationText(data)})\n\n- 특이사항\n * \n * \n * \n\n- 서류검토자 : 소셜비즈니스디자인협동조합 ${reviewer?.name || "담당자명"} / ${reviewer?.phone || "담당자연락처"}`;
+  const text = `- ${data.companyName || "-"} 기본 정보\n * 대표자 : ${data.ceoName || "-"}\n * 유형 : ${data.socialPurpose || data.orgType || "-"}\n * 업종 : ${data.industry || "-"}\n * 규모 : ${getTransferCompanySize(data)} / 매출액 ${fmt(num(data.sales2025))}원, 영업이익 ${fmt(num(data.profit2025))}원\n * 유급근로자 고용현황 : ${counts.workers}명 고용 / 취약계층 ${counts.weak}명\n\n- 특이사항\n * \n\n- 서류검토자 : 소셜비즈니스디자인협동조합 ${reviewer?.name || "담당자명"} / ${reviewer?.phone || "담당자연락처"}`;
   $("transferNotePreview").value = text;
   $("transferNoteStatus").textContent = reviewer ? "복사할 문구가 준비되었습니다." : "담당자를 선택하면 문구가 완성됩니다.";
 }
@@ -7415,7 +7409,15 @@ document.addEventListener("click", async e => {
   if (e.target.id === "copyTransferNoteBtn") {
     const text = $("transferNotePreview")?.value || "";
     const ok = text && await copyTextToClipboard(text);
-    $("transferNoteStatus").textContent = ok ? "기타 전달사항 전체 문구를 복사했습니다." : "복사할 문구를 먼저 완성해주세요.";
+    if (ok) {
+      $("transferSourcePaste").value = "";
+      $("transferReviewerSelect").value = "";
+      $("transferNotePreview").value = "";
+      $("transferNoteStatus").textContent = "전체 문구를 복사하고 입력 내용을 초기화했습니다.";
+      $("transferSourcePaste").focus();
+    } else {
+      $("transferNoteStatus").textContent = "복사할 문구를 먼저 완성해주세요.";
+    }
     return;
   }
   if (e.target.id === "openQaSearchBtn") {
