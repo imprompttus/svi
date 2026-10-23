@@ -1114,8 +1114,9 @@
     .transfer-reviewer-btn{border:1px solid #c9d9e9;background:#fff;color:#24415f;border-radius:10px;padding:9px 14px;font-weight:900;cursor:pointer}
     .transfer-reviewer-btn:hover{border-color:#2b669d;background:#f0f7ff}
     .transfer-reviewer-btn.is-selected{border-color:#1f5c91;background:#1f5c91;color:#fff;box-shadow:0 6px 14px rgba(31,92,145,.2)}
-    .transfer-note-actions{display:grid;grid-template-columns:1fr;gap:7px;margin-top:8px}
-    .transfer-note-actions #copyTransferNoteBtn{width:100%;height:48px;font-size:15px}
+    .transfer-note-actions{display:flex;flex-direction:column;align-items:flex-end;gap:7px;margin-top:8px}
+    .transfer-note-actions #copyTransferNoteBtn{width:150px;height:44px;font-size:14px}
+    .transfer-note-actions #copyTransferNoteBtn:disabled{background:#e8edf3;color:#8b98a7;border-color:#d7dfe8;box-shadow:none;cursor:not-allowed;transform:none}
     .transfer-note-status{color:#52677d;font-size:13px;font-weight:800}
     .transfer-note-head-actions{display:flex;align-items:center;gap:8px}
     .transfer-note-head-actions .btn{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;line-height:1;text-decoration:none}
@@ -1873,7 +1874,7 @@
           <textarea class="transfer-note-preview" id="transferNotePreview" readonly></textarea>
         </div>
         <div class="transfer-note-actions">
-          <button class="btn primary" id="copyTransferNoteBtn" type="button">전체 복사</button>
+          <button class="btn" id="copyTransferNoteBtn" type="button" disabled>문구 복사</button>
           <div class="transfer-note-status" id="transferNoteStatus">기업정보를 붙여넣고 담당자를 선택하세요.</div>
         </div>
       </div>
@@ -6518,18 +6519,23 @@ function getTransferCompanySize(data){
 }
 function getTransferWorkerCounts(data){ return {workers:num(data?.worker2025), weak:num(data?.weak2025)}; }
 function renderTransferNote(){
+  const copyButton = $("copyTransferNoteBtn");
   const reviewerName = document.querySelector(".transfer-reviewer-btn.is-selected")?.dataset.reviewer || "";
   const raw = $("transferSourcePaste")?.value || "";
   const data = parseTransferPastedData(raw);
   const reviewer = TRANSFER_NOTE_REVIEWERS.find(item => item.name === reviewerName);
   if (!raw.trim() || !data.companyName) {
     $("transferNotePreview").value = "";
+    copyButton.disabled = true;
+    copyButton.classList.remove("primary");
     $("transferNoteStatus").textContent = raw.trim() ? "기업명을 인식하지 못했습니다. 기업정보 전체를 다시 붙여넣어주세요." : "기업정보를 붙여넣으세요.";
     return;
   }
   const counts = getTransferWorkerCounts(data);
   const text = `- ${data.companyName || "-"} 기본 정보\n * 대표자 : ${data.ceoName || "-"}\n * 유형 : ${data.socialPurpose || data.orgType || "-"}\n * 업종 : ${data.industry || "-"}\n * 규모 : ${getTransferCompanySize(data)} / 매출액 ${fmt(num(data.sales2025))}원, 영업이익 ${fmt(num(data.profit2025))}원\n * 유급근로자 고용현황 : ${counts.workers}명 고용 / 취약계층 ${counts.weak}명\n\n- 특이사항\n * \n\n- 서류검토자 : 소셜비즈니스디자인협동조합 ${reviewer?.name || "담당자명"} / ${reviewer?.phone || "담당자연락처"}`;
   $("transferNotePreview").value = text;
+  copyButton.disabled = !reviewer;
+  copyButton.classList.toggle("primary", !!reviewer);
   $("transferNoteStatus").textContent = reviewer ? "복사할 문구가 준비되었습니다." : "담당자를 선택하면 문구가 완성됩니다.";
 }
 async function openTransferNoteModal(){
@@ -7445,7 +7451,9 @@ document.addEventListener("click", async e => {
         button.setAttribute("aria-pressed", "false");
       });
       $("transferNotePreview").value = "";
-      $("transferNoteStatus").textContent = "전체 문구를 복사하고 입력 내용을 초기화했습니다.";
+      e.target.disabled = true;
+      e.target.classList.remove("primary");
+      $("transferNoteStatus").textContent = "문구를 복사하고 입력 내용을 초기화했습니다.";
       $("transferSourcePaste").focus();
     } else {
       $("transferNoteStatus").textContent = "복사할 문구를 먼저 완성해주세요.";
