@@ -1090,7 +1090,9 @@
     .qa-search-form input{width:100%;min-height:46px;font-size:15px}
     .qa-search-meta{min-height:20px;margin-bottom:12px;color:#52677d;font-size:13px;font-weight:800}
     .qa-source-list{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 16px}
-    .qa-source-chip{padding:5px 9px;border-radius:999px;background:#edf4fb;color:#234a70;font-size:12px;font-weight:800}
+    .qa-source-chip{display:inline-flex;align-items:center;gap:5px;padding:5px 9px;border-radius:999px;background:#edf4fb;color:#234a70;font-size:12px;font-weight:800;text-decoration:none;transition:background .15s ease,transform .15s ease}
+    .qa-source-chip:hover{background:#dbeafb;transform:translateY(-1px)}
+    .qa-source-chip-download::after{content:"↓";font-size:13px;font-weight:900}
     .qa-results{display:grid;gap:12px}
     .qa-result-card{border:1px solid #d7e5f3;border-radius:12px;background:#fff;padding:15px;box-shadow:0 5px 16px rgba(25,72,117,.06)}
     .qa-result-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px}
@@ -6433,11 +6435,21 @@ function getQaExcerpt(value, tokens, maxLength=760){
   const end = Math.min(text.length, start + maxLength);
   return `${start > 0 ? "…" : ""}${text.slice(start, end).trim()}${end < text.length ? "…" : ""}`;
 }
+const QA_SOURCE_DOWNLOADS = {
+  "261020 측정자 간담회 자료": {href:"qa-docs/meeting-261020.pdf", filename:"261020 측정자 간담회 자료_수정.pdf"},
+  "2026년 SVI 측정자 매뉴얼": {href:"qa-docs/svi-measurer-manual-2026.pdf", filename:"2026년 SVI 측정자 매뉴얼(스캔본).pdf"},
+  "2026년 측정전문가 보수교육 주요 FAQ": {href:"qa-docs/svi-training-faq-2026-0727.pdf", filename:"2026년 측정전문가 보수교육 주요 FAQ_0727.pdf"},
+  "SVI 측정자 FAQ 260806": {href:"qa-docs/svi-document-review-faq-260806.xlsx", filename:"SVI 측정자 FAQ_260806 공유.xlsx"}
+};
 function renderQaSources(){
   const sourceEl = $("qaSourceList");
   if (!sourceEl) return;
   const sources = window.SVI_QA_DOCUMENTS?.sources || [];
-  sourceEl.innerHTML = sources.map(source => `<span class="qa-source-chip">${escapeHtml(source.name)}</span>`).join("");
+  sourceEl.innerHTML = sources.map(source => {
+    const file = QA_SOURCE_DOWNLOADS[source.name];
+    if (!file) return `<span class="qa-source-chip">${escapeHtml(source.name)}</span>`;
+    return `<a class="qa-source-chip qa-source-chip-download" href="${escapeHtml(file.href)}" download="${escapeHtml(file.filename)}" title="원문 다운로드">${escapeHtml(source.name)}</a>`;
+  }).join("");
 }
 function renderQaSearch(){
   const input = $("qaSearchInput");
