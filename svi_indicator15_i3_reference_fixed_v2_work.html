@@ -1376,13 +1376,13 @@
     .dashboard-head{
       display:flex;
       justify-content:space-between;
-      align-items:flex-end;
-      gap:18px;
+      align-items:center;
+      gap:14px;
       margin-bottom:18px;
     }
     .dashboard-title{
       margin:0;
-      font-size:28px;
+      font-size:25px;
       font-weight:900;
       color:var(--navy);
       letter-spacing:0;
@@ -1395,20 +1395,22 @@
     }
     .dashboard-actions{
       display:flex;
-      flex-direction:column;
-      gap:8px;
-      align-items:flex-end;
+      flex-direction:row;
+      flex-wrap:nowrap;
+      gap:6px;
+      align-items:center;
+      justify-content:flex-end;
     }
     .dashboard-link-group{
       display:flex;
-      gap:8px;
-      flex-wrap:wrap;
+      gap:6px;
+      flex-wrap:nowrap;
       align-items:center;
     }
     .dashboard-work-group{
       display:flex;
-      gap:10px;
-      flex-wrap:wrap;
+      gap:6px;
+      flex-wrap:nowrap;
       align-items:center;
       justify-content:flex-end;
     }
@@ -1416,18 +1418,24 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      min-height:38px;
-      padding:9px 13px;
+      min-height:34px;
+      padding:7px 10px;
       border:1px solid #cddbed;
       border-radius:10px;
       color:#16385a;
-      font-size:13px;
+      font-size:12px;
       font-weight:900;
       text-decoration:none;
       background:linear-gradient(135deg,#e9f4ff,#dceeff) left / 0% 100% no-repeat,#fff;
       white-space:nowrap;
       transform:translateY(0) scale(1);
       transition:background-size .24s ease, transform .18s ease, border-color .18s ease, color .18s ease;
+    }
+    .dashboard-work-group .btn{
+      min-height:34px;
+      padding:7px 11px;
+      font-size:12px;
+      white-space:nowrap;
     }
     .dashboard-link-btn:hover{
       border-color:#8fb7ff;
@@ -1721,7 +1729,7 @@
     @media (max-width: 1100px){
       .wrap{grid-template-columns:1fr}
       .dashboard-head{align-items:stretch;flex-direction:column}
-      .dashboard-actions{align-items:flex-start}
+      .dashboard-actions{align-items:flex-start;flex-wrap:wrap}
       .dashboard-link-group,.dashboard-work-group{justify-content:flex-start}
       .dashboard-summary{grid-template-columns:repeat(2,minmax(0,1fr))}
       .sidebar{position:relative;top:0}
@@ -1772,7 +1780,6 @@
     <div class="dashboard-head">
       <div>
         <h1 class="dashboard-title">SVI 기업 진단 관리</h1>
-        <div class="dashboard-sub">기업별 SVI 진단을 저장하고 관리합니다.</div>
       </div>
       <div class="dashboard-actions">
         <div class="dashboard-link-group" aria-label="외부 바로가기">
