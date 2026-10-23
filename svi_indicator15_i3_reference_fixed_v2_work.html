@@ -1080,6 +1080,27 @@
       font-weight:900;
       background:#f7fbff;
     }
+    .qa-modal{width:min(980px,100%)}
+    .qa-search-form{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .qa-search-form input{width:100%;min-height:46px;font-size:15px}
+    .qa-search-meta{min-height:20px;margin-bottom:12px;color:#52677d;font-size:13px;font-weight:800}
+    .qa-source-list{display:flex;gap:6px;flex-wrap:wrap;margin:10px 0 16px}
+    .qa-source-chip{padding:5px 9px;border-radius:999px;background:#edf4fb;color:#234a70;font-size:12px;font-weight:800}
+    .qa-results{display:grid;gap:12px}
+    .qa-result-card{border:1px solid #d7e5f3;border-radius:12px;background:#fff;padding:15px;box-shadow:0 5px 16px rgba(25,72,117,.06)}
+    .qa-result-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:9px}
+    .qa-result-title{color:var(--navy);font-size:15px;font-weight:900;line-height:1.45}
+    .qa-result-source{flex:0 0 auto;padding:4px 8px;border-radius:999px;background:#173a5e;color:#fff;font-size:11px;font-weight:900}
+    .qa-result-question{margin:0 0 9px;padding:9px 11px;border-radius:8px;background:#f2f7fc;color:#163a5e;font-size:13px;font-weight:900;line-height:1.55}
+    .qa-result-answer{color:#26384a;font-size:14px;line-height:1.75;white-space:pre-wrap;word-break:keep-all}
+    .qa-result-answer mark,.qa-result-question mark{background:#fff0a8;color:inherit;border-radius:3px;padding:0 1px}
+    .qa-result-foot{margin-top:10px;color:#6b7f94;font-size:12px;font-weight:800}
+    .qa-notice{margin-top:14px;padding:10px 12px;border-radius:9px;background:#fff8e8;color:#795d1b;font-size:12px;line-height:1.55}
     .print-report{display:none}
     .print-page{
       background:#fff;
@@ -1742,6 +1763,7 @@
         <button class="btn primary" id="newCompanyBtn" type="button">기업 추가</button>
         <button class="btn primary" id="openDocReviewBtn" type="button">보완요청 복사용</button>
         <button class="btn primary" id="openIndicator4SearchBtn" type="button">지표4 검색</button>
+        <button class="btn primary" id="openQaSearchBtn" type="button">Q&amp;A</button>
       </div>
     </div>
     <div class="dashboard-card">
@@ -1804,6 +1826,28 @@
         </div>
         <div class="indicator4-search-meta" id="indicator4SearchMeta">기업명을 입력하세요.</div>
         <div class="indicator4-results" id="indicator4SearchResults"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop is-hidden" id="qaSearchModal" aria-hidden="true">
+    <div class="doc-review-modal qa-modal" role="dialog" aria-modal="true" aria-labelledby="qaSearchTitle">
+      <div class="doc-review-modal-top">
+        <div>
+          <h2 class="doc-review-modal-title" id="qaSearchTitle">SVI 자료 Q&amp;A</h2>
+          <div class="doc-review-modal-sub">측정자 매뉴얼과 FAQ에서 질문과 관련된 내용을 찾아 원문 출처와 함께 표시합니다.</div>
+        </div>
+        <button class="btn" id="closeQaSearchBtn" type="button">닫기</button>
+      </div>
+      <div class="table-card doc-review-panel">
+        <div class="qa-search-form">
+          <input id="qaSearchInput" type="search" placeholder="예: 지표2 평가위원회 외부위원은 몇 명 필요한가요?" autocomplete="off">
+          <button class="btn primary" id="qaSearchRunBtn" type="button">검색</button>
+        </div>
+        <div class="qa-search-meta" id="qaSearchMeta">질문이나 핵심 단어를 2글자 이상 입력하세요.</div>
+        <div id="qaSourceList" class="qa-source-list"></div>
+        <div class="qa-results" id="qaSearchResults"></div>
+        <div class="qa-notice">문서 검색 결과이므로 최종 검토 시 표시된 자료와 해당 쪽의 원문을 함께 확인하세요. 스캔 자료는 문자 인식 과정에서 일부 글자가 다르게 읽힐 수 있습니다.</div>
       </div>
     </div>
   </div>
@@ -2601,6 +2645,7 @@
   </div>
 
 <script src="config.js"></script>
+<script src="qa-data.js"></script>
 <script>
 window.SVI_SUPABASE_URL = window.SVI_SUPABASE_URL || "https://vjtrhzmxpifknzaonfsc.supabase.co";
 window.SVI_SUPABASE_ANON_KEY = window.SVI_SUPABASE_ANON_KEY || "sb_publishable_AaicLCBdYKUlFhB-9IuZDg_M0VOWvN0";
@@ -6314,6 +6359,130 @@ function closeIndicator4SearchModal(){
   modal.classList.add("is-hidden");
   modal.setAttribute("aria-hidden", "true");
 }
+const QA_STOP_WORDS = new Set(["관련","대해서","대한","어떻게","있나요","인가요","무엇","알려줘","알려주세요","문의","경우에는","해주세요"]);
+function normalizeQaText(value){
+  return String(value || "").toLowerCase().normalize("NFKC").replace(/[^0-9a-z가-힣]+/g, " ").replace(/\s+/g, " ").trim();
+}
+function getQaTokens(value){
+  return [...new Set(normalizeQaText(value).split(" ").filter(token => token.length >= 2 && !QA_STOP_WORDS.has(token)))];
+}
+function countQaMatches(text, token){
+  if (!text || !token) return 0;
+  let count = 0;
+  let offset = 0;
+  while ((offset = text.indexOf(token, offset)) !== -1) {
+    count += 1;
+    offset += Math.max(1, token.length);
+  }
+  return count;
+}
+function scoreQaItem(item, query, tokens){
+  const title = normalizeQaText(item.title);
+  const question = normalizeQaText(item.question);
+  const answer = normalizeQaText(item.answer);
+  const full = normalizeQaText(item.search || `${item.title || ""} ${item.question || ""} ${item.answer || ""}`);
+  const compactQuery = normalizeQaText(query).replace(/\s/g, "");
+  const compactFull = full.replace(/\s/g, "");
+  let score = compactQuery.length >= 3 && compactFull.includes(compactQuery) ? 140 : 0;
+  let matched = 0;
+  tokens.forEach(token => {
+    const inTitle = countQaMatches(title, token);
+    const inQuestion = countQaMatches(question, token);
+    const inAnswer = countQaMatches(answer, token);
+    if (inTitle || inQuestion || inAnswer) matched += 1;
+    score += Math.min(inTitle, 3) * 30 + Math.min(inQuestion, 4) * 34 + Math.min(inAnswer, 6) * 9;
+  });
+  if (tokens.length && matched === tokens.length) score += 45;
+  score += matched * 5;
+  if (item.kind && /FAQ/.test(item.kind)) score += 5;
+  return {score, matched};
+}
+function searchQaDocuments(query){
+  const data = window.SVI_QA_DOCUMENTS || {items:[]};
+  const tokens = getQaTokens(query);
+  if (!tokens.length) return [];
+  return data.items
+    .map(item => ({item, ...scoreQaItem(item, query, tokens)}))
+    .filter(result => result.score > 0 && result.matched > 0)
+    .sort((a,b) => b.score - a.score || b.matched - a.matched)
+    .slice(0, 8)
+    .map(result => result.item);
+}
+function escapeQaRegExp(value){
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+function highlightQaText(value, tokens){
+  const text = String(value || "");
+  if (!tokens.length) return escapeHtml(text);
+  const regex = new RegExp(`(${tokens.sort((a,b) => b.length - a.length).map(escapeQaRegExp).join("|")})`, "gi");
+  return text.split(regex).map(part => tokens.some(token => normalizeQaText(part) === normalizeQaText(token)) ? `<mark>${escapeHtml(part)}</mark>` : escapeHtml(part)).join("");
+}
+function getQaExcerpt(value, tokens, maxLength=760){
+  const text = String(value || "").trim();
+  if (text.length <= maxLength) return text;
+  const normalized = normalizeQaText(text);
+  let index = -1;
+  tokens.some(token => {
+    index = normalized.indexOf(normalizeQaText(token));
+    return index >= 0;
+  });
+  const start = Math.max(0, index > 0 ? index - 140 : 0);
+  const end = Math.min(text.length, start + maxLength);
+  return `${start > 0 ? "…" : ""}${text.slice(start, end).trim()}${end < text.length ? "…" : ""}`;
+}
+function renderQaSources(){
+  const sourceEl = $("qaSourceList");
+  if (!sourceEl) return;
+  const sources = window.SVI_QA_DOCUMENTS?.sources || [];
+  sourceEl.innerHTML = sources.map(source => `<span class="qa-source-chip">${escapeHtml(source.name)}</span>`).join("");
+}
+function renderQaSearch(){
+  const input = $("qaSearchInput");
+  const meta = $("qaSearchMeta");
+  const resultsEl = $("qaSearchResults");
+  if (!input || !meta || !resultsEl) return;
+  const query = input.value.trim();
+  renderQaSources();
+  if (normalizeQaText(query).replace(/\s/g, "").length < 2) {
+    meta.textContent = "질문이나 핵심 단어를 2글자 이상 입력하세요.";
+    resultsEl.innerHTML = "";
+    return;
+  }
+  const tokens = getQaTokens(query);
+  const results = searchQaDocuments(query);
+  if (!results.length) {
+    meta.textContent = `“${query}”와 관련된 내용을 찾지 못했습니다.`;
+    resultsEl.innerHTML = `<div class="indicator4-empty">검색어를 줄이거나 지표 번호와 핵심 단어를 함께 입력해보세요.</div>`;
+    return;
+  }
+  meta.textContent = `관련 문서 ${results.length}건 · 관련도가 높은 순서`;
+  resultsEl.innerHTML = results.map(item => {
+    const excerpt = getQaExcerpt(item.answer, tokens);
+    return `<article class="qa-result-card">
+      <div class="qa-result-head">
+        <div class="qa-result-title">${highlightQaText(item.title || item.source, tokens)}</div>
+        <span class="qa-result-source">${escapeHtml(item.kind || "자료")}</span>
+      </div>
+      ${item.question ? `<div class="qa-result-question">Q. ${highlightQaText(item.question, tokens)}</div>` : ""}
+      <div class="qa-result-answer">${highlightQaText(excerpt, tokens)}</div>
+      <div class="qa-result-foot">출처: ${escapeHtml(item.source)} · ${escapeHtml(item.location || "")}</div>
+    </article>`;
+  }).join("");
+}
+function openQaSearchModal(){
+  const modal = $("qaSearchModal");
+  if (!modal) return;
+  modal.classList.remove("is-hidden");
+  modal.setAttribute("aria-hidden", "false");
+  renderQaSearch();
+  setTimeout(() => $("qaSearchInput")?.focus(), 0);
+}
+function closeQaSearchModal(){
+  const modal = $("qaSearchModal");
+  if (!modal) return;
+  modal.classList.add("is-hidden");
+  modal.setAttribute("aria-hidden", "true");
+}
 function getGradeByScore(total){
   return total >= 90 ? "탁월" : total >= 75 ? "우수" : total >= 60 ? "양호" : total >= 45 ? "미흡" : "취약";
 }
@@ -7028,6 +7197,10 @@ function fillSample(){
   $("i14ResultScore").value = 4;
 }
 document.addEventListener("input", e => {
+  if (e.target.id === "qaSearchInput") {
+    renderQaSearch();
+    return;
+  }
   if (e.target.id === "indicator4SearchInput") {
     renderIndicator4Search();
     return;
@@ -7049,6 +7222,18 @@ document.addEventListener("input", e => {
   }
 });
 document.addEventListener("click", async e => {
+  if (e.target.id === "openQaSearchBtn") {
+    openQaSearchModal();
+    return;
+  }
+  if (e.target.id === "closeQaSearchBtn" || e.target.id === "qaSearchModal") {
+    closeQaSearchModal();
+    return;
+  }
+  if (e.target.id === "qaSearchRunBtn") {
+    renderQaSearch();
+    return;
+  }
   if (e.target.id === "openIndicator4SearchBtn") {
     openIndicator4SearchModal();
     return;
