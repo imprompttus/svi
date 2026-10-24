@@ -1121,11 +1121,15 @@
     .transfer-note-head-actions{display:flex;align-items:center;gap:8px}
     .transfer-note-head-actions .btn{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;line-height:1;text-decoration:none}
     .employment-roster-modal{width:min(920px,100%)}
-    .employment-roster-source{min-height:210px;resize:vertical;line-height:1.55;font-family:Consolas,"Malgun Gothic",monospace}
-    .employment-roster-preview{min-height:210px;max-height:310px;resize:vertical;line-height:1.55;font-family:Consolas,"Malgun Gothic",monospace}
+    .employment-roster-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+    .employment-roster-year{padding:14px;border:1px solid #d8e4f0;border-radius:14px;background:#f8fbff}
+    .employment-roster-year-title{margin:0 0 10px;color:var(--navy);font-size:16px;font-weight:900}
+    .employment-roster-source{min-height:185px;resize:vertical;line-height:1.55;font-family:Consolas,"Malgun Gothic",monospace}
+    .employment-roster-preview{min-height:185px;max-height:280px;resize:vertical;line-height:1.55;font-family:Consolas,"Malgun Gothic",monospace}
     .employment-roster-actions{display:flex;flex-direction:column;align-items:flex-end;gap:7px;margin-top:8px}
-    .employment-roster-actions #copyEmploymentRosterBtn{width:150px;height:44px;font-size:14px}
-    .employment-roster-actions #copyEmploymentRosterBtn:disabled{background:#e8edf3;color:#8b98a7;border-color:#d7dfe8;box-shadow:none;cursor:not-allowed;transform:none}
+    .employment-roster-actions .employment-roster-copy{width:150px;height:42px;font-size:14px}
+    .employment-roster-actions .employment-roster-copy:disabled{background:#e8edf3;color:#8b98a7;border-color:#d7dfe8;box-shadow:none;cursor:not-allowed;transform:none}
+    @media (max-width:760px){.employment-roster-grid{grid-template-columns:1fr}}
     @media (max-width:760px){.transfer-note-grid{grid-template-columns:1fr}}
     .print-report{display:none}
     .print-page{
@@ -1897,19 +1901,37 @@
         </div>
         <button class="btn" id="closeEmploymentRosterBtn" type="button">닫기</button>
       </div>
-      <div class="table-card doc-review-panel">
-        <div class="transfer-note-field">
-          <label for="employmentRosterSource">고용보험 명부 붙여넣기</label>
-          <textarea class="employment-roster-source" id="employmentRosterSource" placeholder="시스템에서 복사한 고용보험 명부 전체를 여기에 붙여넣으세요."></textarea>
-        </div>
-        <div class="transfer-note-field" style="margin-top:12px;">
-          <label for="employmentRosterPreview">엑셀 붙여넣기용 결과</label>
-          <textarea class="employment-roster-preview" id="employmentRosterPreview" readonly></textarea>
-        </div>
-        <div class="employment-roster-actions">
-          <button class="btn" id="copyEmploymentRosterBtn" type="button" disabled>표 복사</button>
-          <div class="transfer-note-status" id="employmentRosterStatus">고용보험 명부를 붙여넣으세요.</div>
-        </div>
+      <div class="employment-roster-grid">
+        <section class="employment-roster-year" aria-labelledby="employmentRoster2025Title">
+          <h3 class="employment-roster-year-title" id="employmentRoster2025Title">2025년 명부</h3>
+          <div class="transfer-note-field">
+            <label for="employmentRosterSource2025">2025년 고용보험 명부 붙여넣기</label>
+            <textarea class="employment-roster-source" id="employmentRosterSource2025" placeholder="2025년 명부 전체를 붙여넣으세요."></textarea>
+          </div>
+          <div class="transfer-note-field" style="margin-top:12px;">
+            <label for="employmentRosterPreview2025">2025년 엑셀 붙여넣기용 결과</label>
+            <textarea class="employment-roster-preview" id="employmentRosterPreview2025" readonly></textarea>
+          </div>
+          <div class="employment-roster-actions">
+            <button class="btn employment-roster-copy" id="copyEmploymentRoster2025Btn" data-year="2025" type="button" disabled>2025년 표 복사</button>
+            <div class="transfer-note-status" id="employmentRosterStatus2025">2025년 명부를 붙여넣으세요.</div>
+          </div>
+        </section>
+        <section class="employment-roster-year" aria-labelledby="employmentRoster2024Title">
+          <h3 class="employment-roster-year-title" id="employmentRoster2024Title">2024년 명부</h3>
+          <div class="transfer-note-field">
+            <label for="employmentRosterSource2024">2024년 고용보험 명부 붙여넣기</label>
+            <textarea class="employment-roster-source" id="employmentRosterSource2024" placeholder="2024년 명부 전체를 붙여넣으세요."></textarea>
+          </div>
+          <div class="transfer-note-field" style="margin-top:12px;">
+            <label for="employmentRosterPreview2024">2024년 엑셀 붙여넣기용 결과</label>
+            <textarea class="employment-roster-preview" id="employmentRosterPreview2024" readonly></textarea>
+          </div>
+          <div class="employment-roster-actions">
+            <button class="btn employment-roster-copy" id="copyEmploymentRoster2024Btn" data-year="2024" type="button" disabled>2024년 표 복사</button>
+            <div class="transfer-note-status" id="employmentRosterStatus2024">2024년 명부를 붙여넣으세요.</div>
+          </div>
+        </section>
       </div>
     </div>
   </div>
@@ -6638,23 +6660,25 @@ function normalizeEmploymentRoster(raw){
     .filter(line => line.trim())
     .join("\n");
 }
-function renderEmploymentRoster(){
-  const raw = $("employmentRosterSource")?.value || "";
+function renderEmploymentRoster(year){
+  const raw = $(`employmentRosterSource${year}`)?.value || "";
   const result = normalizeEmploymentRoster(raw);
-  const preview = $("employmentRosterPreview");
-  const copyButton = $("copyEmploymentRosterBtn");
+  const preview = $(`employmentRosterPreview${year}`);
+  const copyButton = $(`copyEmploymentRoster${year}Btn`);
   preview.value = result;
   copyButton.disabled = !result;
   copyButton.classList.toggle("primary", !!result);
-  $("employmentRosterStatus").textContent = result ? "엑셀에 붙여넣을 표가 준비되었습니다." : "고용보험 명부를 붙여넣으세요.";
+  $(`employmentRosterStatus${year}`).textContent = result ? `${year}년 엑셀에 붙여넣을 표가 준비되었습니다.` : `${year}년 명부를 붙여넣으세요.`;
 }
 function openEmploymentRosterModal(){
-  $("employmentRosterSource").value = "";
-  $("employmentRosterPreview").value = "";
+  [2025, 2024].forEach(year => {
+    $(`employmentRosterSource${year}`).value = "";
+    $(`employmentRosterPreview${year}`).value = "";
+    renderEmploymentRoster(year);
+  });
   $("employmentRosterModal").classList.remove("is-hidden");
   $("employmentRosterModal").setAttribute("aria-hidden", "false");
-  renderEmploymentRoster();
-  setTimeout(() => $("employmentRosterSource")?.focus(), 0);
+  setTimeout(() => $("employmentRosterSource2025")?.focus(), 0);
 }
 function closeEmploymentRosterModal(){
   $("employmentRosterModal")?.classList.add("is-hidden");
@@ -7508,8 +7532,8 @@ document.addEventListener("input", e => {
     renderTransferNote();
     return;
   }
-  if (e.target.id === "employmentRosterSource") {
-    renderEmploymentRoster();
+  if (e.target.id === "employmentRosterSource2025" || e.target.id === "employmentRosterSource2024") {
+    renderEmploymentRoster(e.target.id.endsWith("2025") ? 2025 : 2024);
     return;
   }
   if (e.target.id === "qaSearchInput") {
@@ -7563,18 +7587,19 @@ document.addEventListener("click", async e => {
     closeEmploymentRosterModal();
     return;
   }
-  if (e.target.id === "copyEmploymentRosterBtn") {
-    const text = $("employmentRosterPreview")?.value || "";
+  if (e.target.classList.contains("employment-roster-copy")) {
+    const year = e.target.dataset.year;
+    const text = $(`employmentRosterPreview${year}`)?.value || "";
     const ok = text && await copyTextToClipboard(text);
     if (ok) {
-      $("employmentRosterSource").value = "";
-      $("employmentRosterPreview").value = "";
+      $(`employmentRosterSource${year}`).value = "";
+      $(`employmentRosterPreview${year}`).value = "";
       e.target.disabled = true;
       e.target.classList.remove("primary");
-      $("employmentRosterStatus").textContent = "표를 복사하고 입력 내용을 초기화했습니다.";
-      $("employmentRosterSource").focus();
+      $(`employmentRosterStatus${year}`).textContent = `${year}년 표를 복사하고 입력 내용을 초기화했습니다.`;
+      $(`employmentRosterSource${year}`).focus();
     } else {
-      $("employmentRosterStatus").textContent = "복사할 명부를 먼저 붙여넣어주세요.";
+      $(`employmentRosterStatus${year}`).textContent = `복사할 ${year}년 명부를 먼저 붙여넣어주세요.`;
     }
     return;
   }
