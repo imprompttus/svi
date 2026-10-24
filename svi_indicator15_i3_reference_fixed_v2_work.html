@@ -6605,23 +6605,66 @@ function closeTransferNoteModal(){
   $("transferNoteModal")?.classList.add("is-hidden");
   $("transferNoteModal")?.setAttribute("aria-hidden", "true");
 }
-function normalizeEmploymentRoster(raw){
-  return String(raw || "")
-    .replace(/\r\n?/g, "\n")
-    .split("\n")
-    .map(line => line.split("\t").map(cell => cell.trim()).join("\t"))
-    .filter(line => line.trim())
-    .join("\n");
+function parseEmploymentRoster(raw){
+  const rows = [];
+  const rejected = [];
+  const lines = String(raw || "").replace(/\r\n?/g, "\n").split("\n");
+  const rowPattern = /^\s*(\d+)\s+(.+?)\s+(\d{2,4})년\s*(\d{1,2})월\s*(\d{1,2})일\s+(\d{4}-\d{1,2}-\d{1,2})\s+(--|-|\d{4}-\d{1,2}-\d{1,2})\s+([\d,]+)원(?:\s+(.+))?\s*$/;
+  lines.forEach(line => {
+    const clean = line.replace(/\t/g, " ").replace(/\s+/g, " ").trim();
+    if (!clean || /^(연번|No\b)/i.test(clean)) return;
+    const match = clean.match(rowPattern);
+    if (!match) {
+      if (/^\d+\s+/.test(clean)) rejected.push(clean);
+      return;
+    }
+    let birthYear = Number(match[3]);
+    if (birthYear < 100) birthYear += birthYear <= 26 ? 2000 : 1900;
+    const pad = value => String(Number(value)).padStart(2, "0");
+    const normalizeDate = value => {
+      const parts = String(value).split("-");
+      return `${parts[0]}-${pad(parts[1])}-${pad(parts[2])}`;
+    };
+    rows.push({
+      sourceNo:Number(match[1]),
+      name:match[2].trim(),
+      birthDate:`${birthYear}-${pad(match[4])}-${pad(match[5])}`,
+      acquireDate:normalizeDate(match[6]),
+      lossDate:/^(--|-)$/.test(match[7]) ? "" : normalizeDate(match[7]),
+    });
+  });
+  return {rows,rejected};
+}
+function makeEmploymentRosterResult(raw, year){
+  const parsed = parseEmploymentRoster(raw);
+  const yearEnd = `${year}-12-31`;
+  const nextYearStart = `${Number(year) + 1}-01-01`;
+  const included = parsed.rows.filter(row => row.acquireDate <= yearEnd && (!row.lossDate || row.lossDate >= nextYearStart));
+  const output = included.map((row, index) => {
+    if (Number(year) === 2025) {
+      const vulnerable = row.birthDate <= "1970-12-31" ? "O" : "X";
+      return `${index + 1}\t${vulnerable}\t${row.name}`;
+    }
+    return `${index + 1}\t${row.name}`;
+  }).join("\n");
+  return {output,total:parsed.rows.length,included:included.length,excluded:parsed.rows.length - included.length,rejected:parsed.rejected.length};
 }
 function renderEmploymentRoster(year){
   const raw = $(`employmentRosterSource${year}`)?.value || "";
-  const result = normalizeEmploymentRoster(raw);
+  const result = makeEmploymentRosterResult(raw, year);
   const preview = $(`employmentRosterPreview${year}`);
   const copyButton = $(`copyEmploymentRoster${year}Btn`);
-  preview.value = result;
-  copyButton.disabled = !result;
-  copyButton.classList.toggle("primary", !!result);
-  $(`employmentRosterStatus${year}`).textContent = result ? `${year}년 엑셀에 붙여넣을 표가 준비되었습니다.` : `${year}년 명부를 붙여넣으세요.`;
+  preview.value = result.output;
+  copyButton.disabled = !result.output;
+  copyButton.classList.toggle("primary", !!result.output);
+  if (!raw.trim()) {
+    $(`employmentRosterStatus${year}`).textContent = `${year}년 명부를 붙여넣으세요.`;
+  } else if (!result.total) {
+    $(`employmentRosterStatus${year}`).textContent = "명부 행을 인식하지 못했습니다. 붙여넣기 형식을 확인해주세요.";
+  } else {
+    const rejectedText = result.rejected ? ` · 미인식 ${result.rejected}행` : "";
+    $(`employmentRosterStatus${year}`).textContent = `전체 ${result.total}명 · 기준일 재직 ${result.included}명 · 제외 ${result.excluded}명${rejectedText}`;
+  }
 }
 function openEmploymentRosterModal(){
   [2025, 2024].forEach(year => {
