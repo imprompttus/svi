@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>고용보험 명부 사용방법</title>
+  <style>
+    :root{--navy:#12395f;--blue:#24679e;--pale:#eef6fd;--line:#ccdae8;--ink:#15283c;--muted:#5e7287;--green:#13845b;--red:#c44d52}
+    *{box-sizing:border-box}
+    body{margin:0;background:#edf3f9;color:var(--ink);font-family:"Malgun Gothic","Noto Sans KR",sans-serif}
+    .page{width:min(1180px,calc(100% - 32px));margin:24px auto;background:#fff;border:1px solid var(--line);border-radius:20px;box-shadow:0 18px 46px rgba(18,57,95,.13);overflow:hidden}
+    header{padding:25px 28px;background:linear-gradient(135deg,#12395f,#24679e);color:#fff}
+    h1{margin:0 0 7px;font-size:27px} header p{margin:0;line-height:1.55;opacity:.9}
+    main{padding:24px 28px 30px}
+    .steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:22px}
+    .step{padding:17px;border:1px solid var(--line);border-radius:14px;background:#fff}
+    .num{display:inline-grid;place-items:center;width:30px;height:30px;margin-bottom:10px;border-radius:50%;background:var(--blue);color:#fff;font-weight:900}
+    .step h2{margin:0 0 8px;font-size:16px;color:var(--navy)} .step p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+    .years{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+    .year{border:1px solid var(--line);border-radius:16px;overflow:hidden}
+    .year-title{padding:13px 16px;background:var(--navy);color:#fff;font-size:17px;font-weight:900}
+    .year-body{padding:16px}
+    .rule{margin:0 0 13px;padding:12px 14px;background:var(--pale);border-radius:10px;font-size:13px;line-height:1.65}
+    .label{margin:14px 0 6px;font-size:12px;font-weight:900;color:var(--muted)}
+    .sample{overflow:auto;padding:13px;border:1px solid #dbe6f1;border-radius:10px;background:#fbfdff;font:13px/1.75 Consolas,"Malgun Gothic",monospace;white-space:nowrap}
+    .o{color:var(--green);font-weight:900}.x{color:var(--red);font-weight:900}
+    .tip{margin-top:18px;padding:14px 16px;border-left:5px solid var(--blue);border-radius:9px;background:#f3f8fd;font-size:13px;line-height:1.7}
+    @media(max-width:850px){.steps{grid-template-columns:1fr 1fr}.years{grid-template-columns:1fr}}
+    @media(max-width:520px){.steps{grid-template-columns:1fr}main{padding:18px}.page{width:min(100% - 16px,1180px);margin:8px auto}header{padding:20px}}
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>고용보험 명부 사용방법</h1>
+      <p>고용보험 명부를 연도별 기준일에 맞춰 정리하고 엑셀 서식에 바로 붙여넣는 방법입니다.</p>
+    </header>
+    <main>
+      <section class="steps" aria-label="사용 순서">
+        <article class="step"><span class="num">1</span><h2>명부 전체 복사</h2><p>시스템의 고용보험 명부에서 연번부터 마지막 근로자까지 전체를 선택해 복사합니다.</p></article>
+        <article class="step"><span class="num">2</span><h2>연도별 칸에 붙여넣기</h2><p>2025년 자료는 왼쪽, 2024년 자료는 오른쪽 붙여넣기 칸에 넣습니다.</p></article>
+        <article class="step"><span class="num">3</span><h2>자동 결과 확인</h2><p>기준일 재직자를 자동 선별합니다. 2025년은 고령자 여부도 O·X로 판정합니다.</p></article>
+        <article class="step"><span class="num">4</span><h2>표 복사 후 엑셀 붙여넣기</h2><p>파란색 표 복사 버튼을 누르고 엑셀 표의 첫 번째 데이터 행에서 붙여넣습니다.</p></article>
+      </section>
+      <section class="years">
+        <article class="year">
+          <div class="year-title">2025년 명부</div>
+          <div class="year-body">
+            <p class="rule"><b>재직 기준:</b> 취득일이 2025-12-31 이하이며, 상실일이 없거나 2026-01-01 이상인 사람<br><b>고령자 기준:</b> 1970-12-31 이전 출생 <span class="o">O</span> / 1971-01-01 이후 출생 <span class="x">X</span></p>
+            <div class="label">자동 생성 예시 · 번호 / 취약계층 / 성명</div>
+            <div class="sample">1　<span class="x">X</span>　강경희<br>2　<span class="o">O</span>　강영숙<br>3　<span class="o">O</span>　고순자</div>
+          </div>
+        </article>
+        <article class="year">
+          <div class="year-title">2024년 명부</div>
+          <div class="year-body">
+            <p class="rule"><b>재직 기준:</b> 취득일이 2024-12-31 이하이며, 상실일이 없거나 2025-01-01 이상인 사람<br><b>결과 항목:</b> 번호와 성명만 순서대로 정리</p>
+            <div class="label">자동 생성 예시 · 번호 / 성명</div>
+            <div class="sample">1　강경희<br>2　고순자<br>3　김명희</div>
+          </div>
+        </article>
+      </section>
+      <div class="tip"><b>확인 팁</b> · 결과 아래의 ‘전체 / 기준일 재직 / 제외 / 미인식’ 인원을 확인하세요. 복사 과정에서 두 사람의 행이 붙더라도 자동으로 분리해 인식합니다.</div>
+    </main>
+  </div>
+</body>
+</html>
