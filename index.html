@@ -6655,7 +6655,10 @@ function closeTransferNoteModal(){
 function parseEmploymentRoster(raw){
   const rows = [];
   const rejected = [];
-  const lines = String(raw || "").replace(/\r\n?/g, "\n").split("\n");
+  const separated = String(raw || "")
+    .replace(/\r\n?/g, "\n")
+    .replace(/(근로자)\s*(?=\d+\s+.+?\s+\d{2,4}년\s*\d{1,2}월\s*\d{1,2}일)/g, "$1\n");
+  const lines = separated.split("\n");
   const rowPattern = /^\s*(\d+)\s+(.+?)\s+(\d{2,4})년\s*(\d{1,2})월\s*(\d{1,2})일\s+(\d{4}-\d{1,2}-\d{1,2})\s+(--|-|\d{4}-\d{1,2}-\d{1,2})\s+([\d,]+)원(?:\s+(.+))?\s*$/;
   lines.forEach(line => {
     const clean = line.replace(/\t/g, " ").replace(/\s+/g, " ").trim();
