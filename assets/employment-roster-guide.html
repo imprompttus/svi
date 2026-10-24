@@ -16,6 +16,10 @@
     .step{padding:17px;border:1px solid var(--line);border-radius:14px;background:#fff}
     .num{display:inline-grid;place-items:center;width:30px;height:30px;margin-bottom:10px;border-radius:50%;background:var(--blue);color:#fff;font-weight:900}
     .step h2{margin:0 0 8px;font-size:16px;color:var(--navy)} .step p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
+    .drag-example{margin:0 0 22px;padding:16px;border:1px solid var(--line);border-radius:16px;background:#f8fbfe}
+    .drag-example h2{margin:0 0 6px;font-size:17px;color:var(--navy)}
+    .drag-example p{margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.6}
+    .drag-example img{display:block;width:min(100%,900px);height:auto;margin:0 auto;border:1px solid #d8e2ec;border-radius:10px;background:#fff}
     .years{display:grid;grid-template-columns:1fr 1fr;gap:16px}
     .year{border:1px solid var(--line);border-radius:16px;overflow:hidden}
     .year-title{padding:13px 16px;background:var(--navy);color:#fff;font-size:17px;font-weight:900}
@@ -40,6 +44,11 @@
         <article class="step"><span class="num">2</span><h2>연도별 칸에 붙여넣기</h2><p>2025년 자료는 왼쪽, 2024년 자료는 오른쪽 붙여넣기 칸에 넣습니다.</p></article>
         <article class="step"><span class="num">3</span><h2>자동 결과 확인</h2><p>하단 기준에 따라 판별됩니다.</p></article>
         <article class="step"><span class="num">4</span><h2>표 복사 후 엑셀 붙여넣기</h2><p>파란색 표 복사 버튼을 누르고 엑셀 표의 첫 번째 데이터 행에서 붙여넣습니다.</p></article>
+      </section>
+      <section class="drag-example" aria-label="명부 드래그 예시">
+        <h2>사업장 자격취득자명부 드래그 예시</h2>
+        <p>연번 제목 앞에서 시작해 마지막 근로자의 비고 칸 끝까지 전체를 대각선으로 드래그한 뒤 복사합니다.</p>
+        <img src="employment-roster-drag-example.png" alt="사업장 자격취득자명부에서 연번부터 마지막 근로자까지 드래그하는 예시">
       </section>
       <section class="years">
         <article class="year">
