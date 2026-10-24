@@ -1120,6 +1120,12 @@
     .transfer-note-status{color:#52677d;font-size:13px;font-weight:800}
     .transfer-note-head-actions{display:flex;align-items:center;gap:8px}
     .transfer-note-head-actions .btn{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;line-height:1;text-decoration:none}
+    .employment-roster-modal{width:min(920px,100%)}
+    .employment-roster-source{min-height:210px;resize:vertical;line-height:1.55;font-family:Consolas,"Malgun Gothic",monospace}
+    .employment-roster-preview{min-height:210px;max-height:310px;resize:vertical;line-height:1.55;font-family:Consolas,"Malgun Gothic",monospace}
+    .employment-roster-actions{display:flex;flex-direction:column;align-items:flex-end;gap:7px;margin-top:8px}
+    .employment-roster-actions #copyEmploymentRosterBtn{width:150px;height:44px;font-size:14px}
+    .employment-roster-actions #copyEmploymentRosterBtn:disabled{background:#e8edf3;color:#8b98a7;border-color:#d7dfe8;box-shadow:none;cursor:not-allowed;transform:none}
     @media (max-width:760px){.transfer-note-grid{grid-template-columns:1fr}}
     .print-report{display:none}
     .print-page{
@@ -1799,6 +1805,7 @@
           <button class="btn primary" id="newCompanyBtn" type="button">기업 추가</button>
           <button class="btn primary" id="openDocReviewBtn" type="button">보완요청 복사용</button>
           <button class="btn primary" id="openTransferNoteBtn" type="button">기타 전달사항</button>
+          <button class="btn primary" id="openEmploymentRosterBtn" type="button">고용보험명부</button>
           <button class="btn primary" id="openIndicator4SearchBtn" type="button">(예비)사회적기업</button>
           <button class="btn primary" id="openQaSearchBtn" type="button">Q&amp;A</button>
         </div>
@@ -1876,6 +1883,32 @@
         <div class="transfer-note-actions">
           <button class="btn" id="copyTransferNoteBtn" type="button" disabled>문구 복사</button>
           <div class="transfer-note-status" id="transferNoteStatus">기업정보를 붙여넣고 담당자를 선택하세요.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop is-hidden" id="employmentRosterModal" aria-hidden="true">
+    <div class="doc-review-modal employment-roster-modal" role="dialog" aria-modal="true" aria-labelledby="employmentRosterTitle">
+      <div class="doc-review-modal-top">
+        <div>
+          <h2 class="doc-review-modal-title" id="employmentRosterTitle">고용보험 명부 복사용</h2>
+          <div class="doc-review-modal-sub">시스템에서 복사한 고용보험 명부를 붙여넣으면 엑셀에 바로 붙여넣을 수 있는 형태로 정리합니다.</div>
+        </div>
+        <button class="btn" id="closeEmploymentRosterBtn" type="button">닫기</button>
+      </div>
+      <div class="table-card doc-review-panel">
+        <div class="transfer-note-field">
+          <label for="employmentRosterSource">고용보험 명부 붙여넣기</label>
+          <textarea class="employment-roster-source" id="employmentRosterSource" placeholder="시스템에서 복사한 고용보험 명부 전체를 여기에 붙여넣으세요."></textarea>
+        </div>
+        <div class="transfer-note-field" style="margin-top:12px;">
+          <label for="employmentRosterPreview">엑셀 붙여넣기용 결과</label>
+          <textarea class="employment-roster-preview" id="employmentRosterPreview" readonly></textarea>
+        </div>
+        <div class="employment-roster-actions">
+          <button class="btn" id="copyEmploymentRosterBtn" type="button" disabled>표 복사</button>
+          <div class="transfer-note-status" id="employmentRosterStatus">고용보험 명부를 붙여넣으세요.</div>
         </div>
       </div>
     </div>
@@ -6597,6 +6630,36 @@ function closeTransferNoteModal(){
   $("transferNoteModal")?.classList.add("is-hidden");
   $("transferNoteModal")?.setAttribute("aria-hidden", "true");
 }
+function normalizeEmploymentRoster(raw){
+  return String(raw || "")
+    .replace(/\r\n?/g, "\n")
+    .split("\n")
+    .map(line => line.split("\t").map(cell => cell.trim()).join("\t"))
+    .filter(line => line.trim())
+    .join("\n");
+}
+function renderEmploymentRoster(){
+  const raw = $("employmentRosterSource")?.value || "";
+  const result = normalizeEmploymentRoster(raw);
+  const preview = $("employmentRosterPreview");
+  const copyButton = $("copyEmploymentRosterBtn");
+  preview.value = result;
+  copyButton.disabled = !result;
+  copyButton.classList.toggle("primary", !!result);
+  $("employmentRosterStatus").textContent = result ? "엑셀에 붙여넣을 표가 준비되었습니다." : "고용보험 명부를 붙여넣으세요.";
+}
+function openEmploymentRosterModal(){
+  $("employmentRosterSource").value = "";
+  $("employmentRosterPreview").value = "";
+  $("employmentRosterModal").classList.remove("is-hidden");
+  $("employmentRosterModal").setAttribute("aria-hidden", "false");
+  renderEmploymentRoster();
+  setTimeout(() => $("employmentRosterSource")?.focus(), 0);
+}
+function closeEmploymentRosterModal(){
+  $("employmentRosterModal")?.classList.add("is-hidden");
+  $("employmentRosterModal")?.setAttribute("aria-hidden", "true");
+}
 function countQaMatches(text, token){
   if (!text || !token) return 0;
   let count = 0;
@@ -7445,6 +7508,10 @@ document.addEventListener("input", e => {
     renderTransferNote();
     return;
   }
+  if (e.target.id === "employmentRosterSource") {
+    renderEmploymentRoster();
+    return;
+  }
   if (e.target.id === "qaSearchInput") {
     renderQaSearch();
     return;
@@ -7486,6 +7553,29 @@ document.addEventListener("click", async e => {
   }
   if (e.target.id === "closeTransferNoteBtn" || e.target.id === "transferNoteModal") {
     closeTransferNoteModal();
+    return;
+  }
+  if (e.target.id === "openEmploymentRosterBtn") {
+    openEmploymentRosterModal();
+    return;
+  }
+  if (e.target.id === "closeEmploymentRosterBtn" || e.target.id === "employmentRosterModal") {
+    closeEmploymentRosterModal();
+    return;
+  }
+  if (e.target.id === "copyEmploymentRosterBtn") {
+    const text = $("employmentRosterPreview")?.value || "";
+    const ok = text && await copyTextToClipboard(text);
+    if (ok) {
+      $("employmentRosterSource").value = "";
+      $("employmentRosterPreview").value = "";
+      e.target.disabled = true;
+      e.target.classList.remove("primary");
+      $("employmentRosterStatus").textContent = "표를 복사하고 입력 내용을 초기화했습니다.";
+      $("employmentRosterSource").focus();
+    } else {
+      $("employmentRosterStatus").textContent = "복사할 명부를 먼저 붙여넣어주세요.";
+    }
     return;
   }
   if (e.target.id === "copyTransferNoteBtn") {
@@ -7649,6 +7739,7 @@ document.addEventListener("keydown", e => {
     closeEvidenceCopyModal();
     closeIndicator4SearchModal();
     closeTransferNoteModal();
+    closeEmploymentRosterModal();
   }
   if (e.key === "Enter" && e.target.id === "indicator4SearchInput") {
     e.preventDefault();
