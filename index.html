@@ -1924,7 +1924,7 @@
         <div class="employment-scan-head">
           <div>
             <h3 class="employment-scan-title" id="employmentScanTitle">스캔 PDF·이미지 문자 인식</h3>
-            <p class="employment-scan-help">복사가 안 되는 스캔 명부를 선택하면 브라우저에서 글자를 인식합니다. 결과를 확인·수정한 뒤 해당 연도 칸에 적용하세요.</p>
+                <p class="employment-scan-help">복사가 안 되는 스캔 명부를 선택하면 확대·흑백 보정 후 글자를 인식합니다. 결과가 깨지면 명부 표 부분만 캡처한 이미지가 가장 정확합니다.</p>
           </div>
           <span class="employment-scan-badge">서버 저장 없음</span>
         </div>
@@ -6717,6 +6717,37 @@ function setEmploymentOcrProgress(percent, message){
   if ($("employmentScanProgressBar")) $("employmentScanProgressBar").style.width = `${value}%`;
   if ($("employmentScanStatus") && message) $("employmentScanStatus").textContent = message;
 }
+async function prepareEmploymentOcrCanvas(source){
+  let original = source;
+  if (!(source instanceof HTMLCanvasElement)) {
+    original = await new Promise((resolve, reject) => {
+      const image = new Image();
+      image.onload = () => resolve(image);
+      image.onerror = () => reject(new Error("이미지를 읽지 못했습니다."));
+      image.src = source;
+    });
+  }
+  const width = original.width || original.naturalWidth;
+  const height = original.height || original.naturalHeight;
+  const scale = width < 2200 ? Math.min(2, 2200 / Math.max(1, width)) : 1;
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(width * scale);
+  canvas.height = Math.round(height * scale);
+  const context = canvas.getContext("2d", {willReadFrequently:true});
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(original, 0, 0, canvas.width, canvas.height);
+  const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+  for (let index = 0; index < pixels.data.length; index += 4) {
+    const gray = Math.round(pixels.data[index] * .299 + pixels.data[index + 1] * .587 + pixels.data[index + 2] * .114);
+    const enhanced = gray > 238 ? 255 : Math.max(0, Math.min(255, Math.round((gray - 128) * 1.7 + 128)));
+    pixels.data[index] = enhanced;
+    pixels.data[index + 1] = enhanced;
+    pixels.data[index + 2] = enhanced;
+  }
+  context.putImageData(pixels, 0, 0);
+  return canvas;
+}
 async function getEmploymentOcrSources(file){
   if (file.type !== "application/pdf" && !/\.pdf$/i.test(file.name)) {
     return [{source:URL.createObjectURL(file), revoke:true, label:"이미지 1장"}];
@@ -6729,7 +6760,7 @@ async function getEmploymentOcrSources(file){
   for (let pageNo = 1; pageNo <= pageCount; pageNo += 1) {
     setEmploymentOcrProgress((pageNo - 1) / pageCount * 15, `PDF ${pageNo}/${pageCount}쪽을 준비하고 있습니다.`);
     const page = await pdf.getPage(pageNo);
-    const viewport = page.getViewport({scale:2});
+    const viewport = page.getViewport({scale:3});
     const canvas = document.createElement("canvas");
     canvas.width = Math.ceil(viewport.width);
     canvas.height = Math.ceil(viewport.height);
@@ -6767,9 +6798,16 @@ async function runEmploymentRosterOcr(){
         }
       }
     });
+    await worker.setParameters({
+      tessedit_pageseg_mode:"6",
+      preserve_interword_spaces:"1",
+      user_defined_dpi:"300"
+    });
     const texts = [];
     for (currentPage = 0; currentPage < sources.length; currentPage += 1) {
-      const result = await worker.recognize(sources[currentPage].source);
+      setEmploymentOcrProgress(15 + (currentPage / Math.max(1, sources.length)) * 82, `${sources[currentPage].label} 글자 선명도를 보정하고 있습니다.`);
+      const prepared = await prepareEmploymentOcrCanvas(sources[currentPage].source);
+      const result = await worker.recognize(prepared);
       texts.push(result.data.text.trim());
     }
     resultText.value = texts.filter(Boolean).join("\n");
