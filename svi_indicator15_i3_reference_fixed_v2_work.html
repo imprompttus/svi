@@ -1031,6 +1031,7 @@
       border-radius:8px;
       overflow:hidden;
     }
+    .indicator4-result-grid.self-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
     .indicator4-result-item{
       padding:9px 10px;
       border-right:1px solid #e4edf7;
@@ -6468,11 +6469,7 @@ function renderIndicator4Search(){
   resultsEl.innerHTML = visible.map(item => item.kind === "자활기업" ? `
     <div class="indicator4-result-card">
       <div class="indicator4-result-name"><span class="indicator4-result-badge self">자활기업</span><span>${escapeHtml(item.name || "-")}</span></div>
-      <div class="indicator4-result-grid">
-        <div class="indicator4-result-item">
-          <div class="indicator4-result-label">순번</div>
-          <div class="indicator4-result-value">${escapeHtml(item.sequence || "-")}</div>
-        </div>
+      <div class="indicator4-result-grid self-grid">
         <div class="indicator4-result-item">
           <div class="indicator4-result-label">지역</div>
           <div class="indicator4-result-value">${escapeHtml([item.region,item.district].filter(Boolean).join(" ") || "-")}</div>
