@@ -1121,20 +1121,6 @@
     .transfer-note-head-actions{display:flex;align-items:center;gap:8px}
     .transfer-note-head-actions .btn{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;line-height:1;text-decoration:none}
     .employment-roster-modal{width:min(920px,100%)}
-    .employment-scan-panel{margin:0 0 14px;padding:14px;border:1px solid #bcd2e7;border-radius:14px;background:linear-gradient(135deg,#f4f9fe,#edf6ff)}
-    .employment-scan-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px}
-    .employment-scan-title{margin:0;color:var(--navy);font-size:15px;font-weight:900}
-    .employment-scan-help{margin:4px 0 0;color:#52677d;font-size:12px;line-height:1.55}
-    .employment-scan-badge{flex:none;padding:5px 9px;border:1px solid #b8d5c9;border-radius:999px;background:#edf9f3;color:#16704c;font-size:11px;font-weight:900}
-    .employment-scan-controls{display:grid;grid-template-columns:120px minmax(0,1fr) auto;gap:8px;align-items:center}
-    .employment-scan-controls select,.employment-scan-controls input[type="file"]{min-height:38px;background:#fff}
-    .employment-scan-progress{height:8px;margin-top:10px;border-radius:999px;background:#dbe7f2;overflow:hidden}
-    .employment-scan-progress-bar{width:0;height:100%;background:linear-gradient(90deg,#2b669d,#4e98d2);transition:width .2s ease}
-    .employment-scan-result-wrap{display:none;margin-top:10px}
-    .employment-scan-result-wrap.is-visible{display:block}
-    .employment-scan-result{min-height:120px;max-height:220px;resize:vertical;font-family:Consolas,"Malgun Gothic",monospace;font-size:12px;line-height:1.5;background:#fff}
-    .employment-scan-result-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
-    .employment-scan-status{color:#52677d;font-size:12px;font-weight:800;line-height:1.45}
     .employment-roster-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .employment-roster-year{padding:14px;border:1px solid #d8e4f0;border-radius:14px;background:#f8fbff}
     .employment-roster-year-title{margin:0 0 10px;color:var(--navy);font-size:16px;font-weight:900}
@@ -1144,7 +1130,6 @@
     .employment-roster-actions .employment-roster-copy{width:150px;height:42px;font-size:14px}
     .employment-roster-actions .employment-roster-copy:disabled{background:#e8edf3;color:#8b98a7;border-color:#d7dfe8;box-shadow:none;cursor:not-allowed;transform:none}
     @media (max-width:760px){.employment-roster-grid{grid-template-columns:1fr}}
-    @media (max-width:760px){.employment-scan-controls{grid-template-columns:1fr}.employment-scan-result-actions{align-items:stretch;flex-direction:column}.employment-scan-result-actions .btn{width:100%}}
     @media (max-width:760px){.transfer-note-grid{grid-template-columns:1fr}}
     .print-report{display:none}
     .print-page{
@@ -1930,29 +1915,6 @@
           <button class="btn" id="closeEmploymentRosterBtn" type="button">닫기</button>
         </div>
       </div>
-      <section class="employment-scan-panel" aria-labelledby="employmentScanTitle">
-        <div class="employment-scan-head">
-          <div>
-            <h3 class="employment-scan-title" id="employmentScanTitle">스캔 PDF·이미지 문자 인식</h3>
-            <p class="employment-scan-help">복사가 안 되는 스캔 명부를 선택하면 브라우저에서 글자를 인식합니다. 결과를 확인·수정한 뒤 해당 연도 칸에 적용하세요.</p>
-          </div>
-          <span class="employment-scan-badge">서버 저장 없음</span>
-        </div>
-        <div class="employment-scan-controls">
-          <select id="employmentScanYear" aria-label="적용 연도"><option value="2025">2025년</option><option value="2024">2024년</option></select>
-          <input id="employmentScanFile" type="file" accept="application/pdf,image/png,image/jpeg,image/webp" aria-label="스캔 PDF 또는 이미지 선택">
-          <button class="btn primary" id="runEmploymentOcrBtn" type="button">문자 인식 시작</button>
-        </div>
-        <div class="employment-scan-progress" aria-hidden="true"><div class="employment-scan-progress-bar" id="employmentScanProgressBar"></div></div>
-        <div class="employment-scan-result-wrap" id="employmentScanResultWrap">
-          <label for="employmentScanText" class="employment-scan-title">OCR 인식 결과 · 수정 가능</label>
-          <textarea class="employment-scan-result" id="employmentScanText" placeholder="인식된 원문이 여기에 표시됩니다. 이름과 날짜를 원본과 대조해 주세요."></textarea>
-          <div class="employment-scan-result-actions">
-            <div class="employment-scan-status" id="employmentScanStatus">인식 결과의 이름·생년월일·취득일·상실일을 반드시 원본과 확인하세요.</div>
-            <button class="btn primary" id="applyEmploymentOcrBtn" type="button">선택 연도에 적용</button>
-          </div>
-        </div>
-      </section>
       <div class="employment-roster-grid">
         <section class="employment-roster-year" aria-labelledby="employmentRoster2025Title">
           <h3 class="employment-roster-year-title" id="employmentRoster2025Title">2025년 명부</h3>
@@ -6704,107 +6666,6 @@ function closeTransferNoteModal(){
   $("transferNoteModal")?.classList.add("is-hidden");
   $("transferNoteModal")?.setAttribute("aria-hidden", "true");
 }
-function loadEmploymentOcrScript(id, src){
-  if (window[id]) return Promise.resolve(window[id]);
-  return new Promise((resolve, reject) => {
-    const existing = document.querySelector(`script[data-ocr-lib="${id}"]`);
-    if (existing) {
-      existing.addEventListener("load", () => resolve(window[id]), {once:true});
-      existing.addEventListener("error", reject, {once:true});
-      return;
-    }
-    const script = document.createElement("script");
-    script.src = src;
-    script.async = true;
-    script.dataset.ocrLib = id;
-    script.onload = () => resolve(window[id]);
-    script.onerror = () => reject(new Error(`${id} 라이브러리를 불러오지 못했습니다.`));
-    document.head.appendChild(script);
-  });
-}
-function setEmploymentOcrProgress(percent, message){
-  const value = Math.max(0, Math.min(100, Number(percent) || 0));
-  if ($("employmentScanProgressBar")) $("employmentScanProgressBar").style.width = `${value}%`;
-  if ($("employmentScanStatus") && message) $("employmentScanStatus").textContent = message;
-}
-async function getEmploymentOcrSources(file){
-  if (file.type !== "application/pdf" && !/\.pdf$/i.test(file.name)) {
-    return [{source:URL.createObjectURL(file), revoke:true, label:"이미지 1장"}];
-  }
-  await loadEmploymentOcrScript("pdfjsLib", "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js");
-  window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
-  const pdf = await window.pdfjsLib.getDocument({data:new Uint8Array(await file.arrayBuffer())}).promise;
-  const pageCount = Math.min(pdf.numPages, 10);
-  const pages = [];
-  for (let pageNo = 1; pageNo <= pageCount; pageNo += 1) {
-    setEmploymentOcrProgress((pageNo - 1) / pageCount * 15, `PDF ${pageNo}/${pageCount}쪽을 준비하고 있습니다.`);
-    const page = await pdf.getPage(pageNo);
-    const viewport = page.getViewport({scale:2});
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.ceil(viewport.width);
-    canvas.height = Math.ceil(viewport.height);
-    await page.render({canvasContext:canvas.getContext("2d"),viewport}).promise;
-    pages.push({source:canvas,revoke:false,label:`${pageNo}쪽`});
-  }
-  if (pdf.numPages > pageCount) $("employmentScanStatus").textContent = `처리시간을 위해 앞 ${pageCount}쪽만 인식합니다.`;
-  return pages;
-}
-async function runEmploymentRosterOcr(){
-  const file = $("employmentScanFile")?.files?.[0];
-  const runButton = $("runEmploymentOcrBtn");
-  const resultWrap = $("employmentScanResultWrap");
-  const resultText = $("employmentScanText");
-  if (!file) {
-    resultWrap?.classList.add("is-visible");
-    $("employmentScanStatus").textContent = "먼저 스캔 PDF 또는 이미지 파일을 선택하세요.";
-    return;
-  }
-  runButton.disabled = true;
-  resultWrap.classList.add("is-visible");
-  resultText.value = "";
-  setEmploymentOcrProgress(2, "문자 인식 도구를 준비하고 있습니다. 첫 실행은 잠시 걸릴 수 있습니다.");
-  let worker;
-  let sources = [];
-  try {
-    await loadEmploymentOcrScript("Tesseract", "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js");
-    sources = await getEmploymentOcrSources(file);
-    let currentPage = 0;
-    worker = await window.Tesseract.createWorker("kor+eng", 1, {
-      logger: event => {
-        if (event.status === "recognizing text") {
-          const percent = 15 + ((currentPage + (event.progress || 0)) / Math.max(1, sources.length)) * 82;
-          setEmploymentOcrProgress(percent, `${sources[currentPage]?.label || "파일"} 문자 인식 중 · ${Math.round((event.progress || 0) * 100)}%`);
-        }
-      }
-    });
-    const texts = [];
-    for (currentPage = 0; currentPage < sources.length; currentPage += 1) {
-      const result = await worker.recognize(sources[currentPage].source);
-      texts.push(result.data.text.trim());
-    }
-    resultText.value = texts.filter(Boolean).join("\n");
-    setEmploymentOcrProgress(100, `문자 인식 완료 · ${sources.length}개 화면을 처리했습니다. 원본과 대조한 뒤 적용하세요.`);
-  } catch (error) {
-    console.error(error);
-    setEmploymentOcrProgress(0, "문자 인식에 실패했습니다. 인터넷 연결과 파일 형식을 확인하거나 이미지로 다시 시도하세요.");
-  } finally {
-    if (worker) await worker.terminate();
-    sources.filter(item => item.revoke).forEach(item => URL.revokeObjectURL(item.source));
-    runButton.disabled = false;
-  }
-}
-function applyEmploymentRosterOcr(){
-  const year = $("employmentScanYear")?.value || "2025";
-  const text = $("employmentScanText")?.value || "";
-  if (!text.trim()) {
-    $("employmentScanStatus").textContent = "적용할 OCR 인식 결과가 없습니다.";
-    return;
-  }
-  $(`employmentRosterSource${year}`).value = text;
-  renderEmploymentRoster(Number(year));
-  $("employmentScanStatus").textContent = `${year}년 붙여넣기 칸에 적용했습니다. 미인식 행과 인원수를 확인하세요.`;
-  $(`employmentRosterSource${year}`).scrollIntoView({behavior:"smooth",block:"center"});
-}
 function parseEmploymentRoster(raw){
   const rows = [];
   const rejected = [];
@@ -6875,10 +6736,6 @@ function openEmploymentRosterModal(){
     $(`employmentRosterPreview${year}`).value = "";
     renderEmploymentRoster(year);
   });
-  if ($("employmentScanFile")) $("employmentScanFile").value = "";
-  if ($("employmentScanText")) $("employmentScanText").value = "";
-  $("employmentScanResultWrap")?.classList.remove("is-visible");
-  setEmploymentOcrProgress(0, "인식 결과의 이름·생년월일·취득일·상실일을 반드시 원본과 확인하세요.");
   $("employmentRosterModal").classList.remove("is-hidden");
   $("employmentRosterModal").setAttribute("aria-hidden", "false");
   setTimeout(() => $("employmentRosterSource2025")?.focus(), 0);
@@ -7788,14 +7645,6 @@ document.addEventListener("click", async e => {
   }
   if (e.target.id === "closeEmploymentRosterBtn" || e.target.id === "employmentRosterModal") {
     closeEmploymentRosterModal();
-    return;
-  }
-  if (e.target.id === "runEmploymentOcrBtn") {
-    await runEmploymentRosterOcr();
-    return;
-  }
-  if (e.target.id === "applyEmploymentOcrBtn") {
-    applyEmploymentRosterOcr();
     return;
   }
   if (e.target.classList.contains("employment-roster-copy")) {
