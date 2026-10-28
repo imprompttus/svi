@@ -1467,6 +1467,16 @@
       font-size:11.5px;
       white-space:nowrap;
     }
+    #openIndicator4SearchBtn{
+      min-height:42px;
+      padding:5px 9px;
+      flex-direction:column;
+      gap:1px;
+      line-height:1.1;
+    }
+    #openIndicator4SearchBtn span{pointer-events:none}
+    .indicator4-button-title{font-size:11.5px;font-weight:900}
+    .indicator4-button-sub{font-size:8.5px;font-weight:700;opacity:.9}
     .dashboard-link-btn:hover{
       border-color:#8fb7ff;
       background-size:100% 100%;
@@ -1826,7 +1836,7 @@
           <button class="btn primary" id="openDocReviewBtn" type="button">보완요청 복사용</button>
           <button class="btn primary" id="openTransferNoteBtn" type="button">기타 전달사항</button>
           <button class="btn primary" id="openEmploymentRosterBtn" type="button">고용보험명부</button>
-          <button class="btn primary" id="openIndicator4SearchBtn" type="button">(예비)사회적기업</button>
+          <button class="btn primary" id="openIndicator4SearchBtn" type="button"><span class="indicator4-button-title">지표4 검색</span><span class="indicator4-button-sub">((예비)사회적기업, 자활기업)</span></button>
           <button class="btn primary" id="openQaSearchBtn" type="button">Q&amp;A</button>
         </div>
       </div>
