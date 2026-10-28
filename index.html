@@ -1021,6 +1021,9 @@
     .indicator4-result-badge.pre{
       background:#2f7d6d;
     }
+    .indicator4-result-badge.self{
+      background:#8a5a21;
+    }
     .indicator4-result-grid{
       display:grid;
       grid-template-columns:repeat(4,minmax(0,1fr));
@@ -1959,7 +1962,7 @@
       <div class="doc-review-modal-top">
         <div>
           <h2 class="doc-review-modal-title" id="indicator4SearchTitle">지표4 검색</h2>
-          <div class="doc-review-modal-sub">사회적기업 및 예비사회적기업 조회(2026.7.8.기준 사회적기업 포털 자료)</div>
+          <div class="doc-review-modal-sub">사회적기업·예비사회적기업(2026.7.8. 기준) 및 자활기업(2025.12.31. 기준) 조회</div>
         </div>
         <button class="btn" id="closeIndicator4SearchBtn" type="button">닫기</button>
       </div>
@@ -2790,6 +2793,7 @@
 
 <script src="config.js"></script>
 <script src="qa-data.js"></script>
+<script src="self-support-enterprises-data.js"></script>
 <script>
 window.SVI_SUPABASE_URL = window.SVI_SUPABASE_URL || "https://vjtrhzmxpifknzaonfsc.supabase.co";
 window.SVI_SUPABASE_ANON_KEY = window.SVI_SUPABASE_ANON_KEY || "sb_publishable_AaicLCBdYKUlFhB-9IuZDg_M0VOWvN0";
@@ -6486,7 +6490,8 @@ function normalizeEnterpriseSearchText(value){
 function searchSocialEnterprises(query){
   const q = normalizeEnterpriseSearchText(query);
   if (!q) return [];
-  return SOCIAL_ENTERPRISES.filter(item => normalizeEnterpriseSearchText(item.name).includes(q));
+  const sources = [...SOCIAL_ENTERPRISES, ...(window.SELF_SUPPORT_ENTERPRISES || [])];
+  return sources.filter(item => normalizeEnterpriseSearchText(item.name).includes(q));
 }
 function renderIndicator4Search(){
   const input = $("indicator4SearchInput");
@@ -6507,7 +6512,33 @@ function renderIndicator4Search(){
   }
   const visible = results.slice(0, 80);
   meta.textContent = `${results.length.toLocaleString()}건 조회됨${results.length > visible.length ? ` · 상위 ${visible.length.toLocaleString()}건 표시` : ""}`;
-  resultsEl.innerHTML = visible.map(item => `
+  resultsEl.innerHTML = visible.map(item => item.kind === "자활기업" ? `
+    <div class="indicator4-result-card">
+      <div class="indicator4-result-name"><span class="indicator4-result-badge self">자활기업</span><span>${escapeHtml(item.name || "-")}</span></div>
+      <div class="indicator4-result-grid">
+        <div class="indicator4-result-item">
+          <div class="indicator4-result-label">순번</div>
+          <div class="indicator4-result-value">${escapeHtml(item.sequence || "-")}</div>
+        </div>
+        <div class="indicator4-result-item">
+          <div class="indicator4-result-label">지역</div>
+          <div class="indicator4-result-value">${escapeHtml([item.region,item.district].filter(Boolean).join(" ") || "-")}</div>
+        </div>
+        <div class="indicator4-result-item">
+          <div class="indicator4-result-label">자활기업구분</div>
+          <div class="indicator4-result-value">${escapeHtml(item.selfSupportType || "-")}</div>
+        </div>
+        <div class="indicator4-result-item">
+          <div class="indicator4-result-label">대표자</div>
+          <div class="indicator4-result-value">${escapeHtml(item.ceo || "-")}</div>
+        </div>
+      </div>
+      <div class="indicator4-result-extra">
+        <strong>업종</strong> ${escapeHtml(item.industry || "-")}
+        <br><strong>주소</strong> ${escapeHtml(item.address || "-")}
+      </div>
+    </div>
+  ` : `
     <div class="indicator4-result-card">
       <div class="indicator4-result-name"><span class="indicator4-result-badge ${item.kind === "예비" ? "pre" : ""}">${escapeHtml(item.kind || "인증")}</span><span>${escapeHtml(item.name || "-")}</span></div>
       <div class="indicator4-result-grid">
