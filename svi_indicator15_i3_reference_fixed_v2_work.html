@@ -1397,13 +1397,14 @@
     }
     .login-cloud{
       position:absolute;
-      top:17%;
+      left:-220px;
       width:118px;
       height:36px;
       border-radius:30px;
       background:rgba(255,255,255,.72);
       filter:blur(.2px);
-      animation:loginCloud 18s ease-in-out infinite alternate;
+      animation:loginCloudDrift 42s linear infinite;
+      pointer-events:none;
     }
     .login-cloud::before,.login-cloud::after{
       content:"";
@@ -1414,9 +1415,15 @@
     }
     .login-cloud::before{left:18px;width:46px;height:46px}
     .login-cloud::after{right:17px;width:58px;height:58px}
-    .login-cloud.one{left:8%}
-    .login-cloud.two{right:8%;top:27%;transform:scale(.72);animation-delay:-7s}
-    @keyframes loginCloud{from{translate:-12px 0}to{translate:20px 3px}}
+    .login-cloud.one{top:14%;animation-duration:46s;animation-delay:-12s;transform:scale(1.18)}
+    .login-cloud.two{top:29%;animation-duration:38s;animation-delay:-28s;transform:scale(.74);opacity:.84}
+    .login-cloud.three{top:8%;animation-duration:58s;animation-delay:-42s;transform:scale(1.55);opacity:.58}
+    .login-cloud.four{top:42%;animation-duration:50s;animation-delay:-7s;transform:scale(.92);opacity:.64}
+    .login-cloud.five{top:21%;animation-duration:64s;animation-delay:-52s;transform:scale(1.32);opacity:.48}
+    @keyframes loginCloudDrift{
+      from{left:-220px}
+      to{left:calc(100% + 220px)}
+    }
     .login-card{
       width:min(480px,100%);
       background:rgba(255,255,255,.78);
@@ -1448,6 +1455,16 @@
       font-size:18px;
       padding:13px 16px;
       text-align:center;
+      border:1px solid rgba(87,110,129,.32);
+      border-radius:14px;
+      background:rgba(255,255,255,.68);
+      box-shadow:inset 0 1px 2px rgba(32,61,82,.06);
+    }
+    #adminPasswordInput::placeholder{
+      color:#93a0ab;
+      font-size:14px;
+      font-weight:700;
+      opacity:1;
     }
     .login-title{
       margin:0 0 10px;
@@ -1455,12 +1472,6 @@
       font-size:30px;
       font-weight:900;
       letter-spacing:0;
-    }
-    .login-sub{
-      margin:0 0 16px;
-      color:var(--muted);
-      font-size:17px;
-      line-height:1.55;
     }
     .login-today{margin:4px 0 24px}
     .login-date{color:#547187;font-size:17px;font-weight:800}
@@ -1472,10 +1483,25 @@
       margin-top:16px;
     }
     .login-actions .btn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
       min-height:46px;
-      padding:12px 24px;
+      min-width:112px;
+      padding:0 26px;
       font-size:16px;
+      line-height:1;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.7);
+      box-shadow:0 9px 22px rgba(38,67,89,.18);
+      transition:transform .18s ease,box-shadow .25s ease,background .5s ease;
     }
+    #adminLoginBtn{padding-bottom:2px}
+    #adminLoginBtn:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(38,67,89,.24)}
+    .time-morning #adminLoginBtn{background:linear-gradient(135deg,#e88752,#efaa6d);border-color:#efb786;color:#fffaf4}
+    .time-day #adminLoginBtn{background:linear-gradient(135deg,#328bc0,#55a9cd);border-color:#8ccce5;color:#fff}
+    .time-evening #adminLoginBtn{background:linear-gradient(135deg,#9b668b,#c87983);border-color:#dca4a9;color:#fffafb}
+    .time-night #adminLoginBtn{background:linear-gradient(135deg,#465a91,#7182b2);border-color:#98a5ca;color:#fff}
     .login-error{
       min-height:18px;
       margin-top:10px;
@@ -1944,13 +1970,15 @@
     <div class="login-celestial" aria-hidden="true"></div>
     <div class="login-cloud one" aria-hidden="true"></div>
     <div class="login-cloud two" aria-hidden="true"></div>
+    <div class="login-cloud three" aria-hidden="true"></div>
+    <div class="login-cloud four" aria-hidden="true"></div>
+    <div class="login-cloud five" aria-hidden="true"></div>
     <div class="login-card">
       <h1 class="login-title">SVI 기업 진단 관리</h1>
-      <p class="login-sub">비밀번호 입력 후 사이트 이용</p>
       <div class="login-today"><div class="login-date" id="loginDate"></div><div class="login-time" id="loginTime"></div></div>
       <div class="field">
         <label class="sr-only">비밀번호</label>
-        <input id="adminPasswordInput" type="password" autocomplete="current-password">
+        <input id="adminPasswordInput" type="password" autocomplete="current-password" placeholder="비밀번호 입력 후 사이트 이용">
       </div>
       <div class="login-actions">
         <button class="btn primary" id="adminLoginBtn" type="button">로그인</button>
