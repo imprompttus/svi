@@ -1323,20 +1323,109 @@
       padding:28px 18px 42px;
     }
     .login-view{
+      position:relative;
       min-height:100vh;
       display:flex;
       align-items:center;
       justify-content:center;
       padding:24px;
+      overflow:hidden;
+      background:linear-gradient(155deg,#dff3ff 0%,#e6f7f0 52%,#fff4ce 100%);
+      isolation:isolate;
+      transition:background 1.2s ease;
     }
+    .login-view.time-morning{background:linear-gradient(160deg,#ffd7bd 0%,#ffeacb 42%,#cceaf1 100%)}
+    .login-view.time-day{background:linear-gradient(155deg,#8fd3ff 0%,#dff5ff 52%,#fff4cc 100%)}
+    .login-view.time-evening{background:linear-gradient(155deg,#ffc09d 0%,#d9a5cc 51%,#6677a9 100%)}
+    .login-view.time-night{background:linear-gradient(155deg,#101d42 0%,#25365f 55%,#485b82 100%)}
+    .login-view::before,
+    .login-view::after{
+      content:"";
+      position:absolute;
+      left:-10%;
+      right:-10%;
+      bottom:-19vh;
+      height:45vh;
+      border-radius:50% 50% 0 0;
+      z-index:-1;
+    }
+    .login-view::before{background:#bfe6c8;transform:rotate(-2deg)}
+    .login-view::after{bottom:-27vh;background:#98d2ad;transform:rotate(2deg)}
+    .login-view.time-evening::before{background:#839e83}
+    .login-view.time-evening::after{background:#5f7b72}
+    .login-view.time-night::before{background:#334f55}
+    .login-view.time-night::after{background:#203c45}
+    .login-sky-stars{
+      position:absolute;
+      inset:0;
+      opacity:0;
+      background-image:
+        radial-gradient(circle at 12% 22%,#fff 0 1px,transparent 1.7px),
+        radial-gradient(circle at 25% 12%,#fff 0 1.2px,transparent 1.9px),
+        radial-gradient(circle at 44% 19%,#fff 0 1px,transparent 1.7px),
+        radial-gradient(circle at 66% 10%,#fff 0 1.3px,transparent 2px),
+        radial-gradient(circle at 79% 26%,#fff 0 1px,transparent 1.8px),
+        radial-gradient(circle at 91% 15%,#fff 0 1.2px,transparent 1.9px);
+      transition:opacity 1.2s ease;
+      pointer-events:none;
+    }
+    .time-night .login-sky-stars{opacity:.9}
+    .login-celestial{
+      position:absolute;
+      top:11%;
+      right:13%;
+      width:104px;
+      height:104px;
+      border-radius:50%;
+      background:#fff2ac;
+      box-shadow:0 0 42px rgba(255,226,124,.75);
+      transition:background 1.2s ease,box-shadow 1.2s ease,transform 1.2s ease;
+    }
+    .time-morning .login-celestial{right:auto;left:12%;top:30%;background:#ffb05f;box-shadow:0 0 54px rgba(255,156,73,.72)}
+    .time-day .login-celestial{background:#fff3a0;box-shadow:0 0 54px rgba(255,235,126,.82)}
+    .time-evening .login-celestial{top:26%;background:#ff925e;box-shadow:0 0 52px rgba(255,116,83,.62)}
+    .time-night .login-celestial{width:86px;height:86px;background:#fffce7;box-shadow:0 0 34px rgba(237,242,255,.52)}
+    .time-night .login-celestial::after{
+      content:"";
+      position:absolute;
+      width:86px;
+      height:86px;
+      left:-25px;
+      top:-12px;
+      border-radius:50%;
+      background:#1b2a50;
+    }
+    .login-cloud{
+      position:absolute;
+      top:17%;
+      width:118px;
+      height:36px;
+      border-radius:30px;
+      background:rgba(255,255,255,.72);
+      filter:blur(.2px);
+      animation:loginCloud 18s ease-in-out infinite alternate;
+    }
+    .login-cloud::before,.login-cloud::after{
+      content:"";
+      position:absolute;
+      bottom:0;
+      border-radius:50%;
+      background:inherit;
+    }
+    .login-cloud::before{left:18px;width:46px;height:46px}
+    .login-cloud::after{right:17px;width:58px;height:58px}
+    .login-cloud.one{left:8%}
+    .login-cloud.two{right:8%;top:27%;transform:scale(.72);animation-delay:-7s}
+    @keyframes loginCloud{from{translate:-12px 0}to{translate:20px 3px}}
     .login-card{
       width:min(480px,100%);
-      background:rgba(255,255,255,.94);
-      border:1px solid var(--line);
-      border-radius:18px;
-      box-shadow:var(--shadow);
+      background:rgba(255,255,255,.78);
+      border:1px solid rgba(255,255,255,.94);
+      border-radius:24px;
+      box-shadow:0 22px 55px rgba(38,80,98,.18);
       padding:34px 32px;
       text-align:center;
+      backdrop-filter:blur(14px);
     }
     .login-card .field label{
       justify-content:center;
@@ -1368,11 +1457,14 @@
       letter-spacing:0;
     }
     .login-sub{
-      margin:0 0 24px;
+      margin:0 0 16px;
       color:var(--muted);
       font-size:17px;
       line-height:1.55;
     }
+    .login-today{margin:4px 0 24px}
+    .login-date{color:#547187;font-size:17px;font-weight:800}
+    .login-time{margin-top:2px;color:#173b59;font-size:42px;font-weight:900;line-height:1.15;letter-spacing:.04em;font-variant-numeric:tabular-nums}
     .login-actions{
       display:flex;
       gap:8px;
@@ -1511,6 +1603,7 @@
       transform:translateY(0) scale(.98);
     }
     @media (prefers-reduced-motion: reduce){
+      .login-cloud{animation:none}
       .dashboard-link-btn,
       #newCompanyBtn,
       #backToDashboardBtn,
@@ -1913,9 +2006,14 @@
 </head>
 <body>
   <div class="login-view" id="loginView">
+    <div class="login-sky-stars" aria-hidden="true"></div>
+    <div class="login-celestial" aria-hidden="true"></div>
+    <div class="login-cloud one" aria-hidden="true"></div>
+    <div class="login-cloud two" aria-hidden="true"></div>
     <div class="login-card">
       <h1 class="login-title">SVI 기업 진단 관리</h1>
       <p class="login-sub">비밀번호 입력 후 사이트 이용</p>
+      <div class="login-today"><div class="login-date" id="loginDate"></div><div class="login-time" id="loginTime"></div></div>
       <div class="field">
         <label class="sr-only">비밀번호</label>
         <input id="adminPasswordInput" type="password" autocomplete="current-password">
@@ -8123,6 +8221,22 @@ async function initApp(){
   await migrateSingleRecordIfNeeded();
   await renderDashboard();
 }
+function updateLoginWelcome(){
+  const now = new Date();
+  const hour = now.getHours();
+  const previewPeriod = new URLSearchParams(location.search).get("time");
+  const period = ["morning","day","evening","night"].includes(previewPeriod)
+    ? previewPeriod
+    : hour < 10 ? "morning" : hour < 17 ? "day" : hour < 20 ? "evening" : "night";
+  if ($("loginView")) {
+    $("loginView").classList.remove("time-morning","time-day","time-evening","time-night");
+    $("loginView").classList.add(`time-${period}`);
+  }
+  if ($("loginDate")) $("loginDate").textContent = new Intl.DateTimeFormat("ko-KR", {year:"numeric",month:"long",day:"numeric",weekday:"long"}).format(now);
+  if ($("loginTime")) $("loginTime").textContent = new Intl.DateTimeFormat("ko-KR", {hour:"2-digit",minute:"2-digit",second:"2-digit",hour12:false}).format(now);
+}
+updateLoginWelcome();
+setInterval(updateLoginWelcome, 1000);
 requireAdminBeforeStart();
 </script>
 </body>
