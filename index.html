@@ -407,6 +407,22 @@
     .summary-copy-btn:hover{
       background:rgba(255,255,255,.22);
     }
+    .i3-assessor-copy{
+      margin-top:16px;
+      padding:16px;
+      border:1px solid #d9e5f2;
+      border-radius:14px;
+      background:#f7fbff;
+    }
+    .i3-assessor-label{margin-top:10px;color:#274d73;font-size:13px;font-weight:900;}
+    .i3-assessor-copy .summary{margin-top:6px;text-align:left;line-height:1.65;}
+    .i3-external-controls{
+      display:grid;grid-template-columns:minmax(0,1fr) 220px;gap:10px;margin-top:6px;
+    }
+    .i3-external-controls textarea{min-height:84px;}
+    @media(max-width:760px){
+      .i3-external-controls{grid-template-columns:1fr;}
+    }
     .i7-section-gap{
       margin-top:28px;
       padding-top:20px;
@@ -2321,7 +2337,7 @@
             <div class="field"><label class="req">주 업종</label><select id="industry"></select><div class="hint">* 기업의 업종은 제출된 재무제표확인원 또는 표준재무제표증명상 업종을 기준으로 판단합니다.</div></div>
             <div class="field"><label class="req">조직유형</label>
               <select id="orgType">
-                <option value="">선택</option><option>인증</option><option>예비</option><option>예비(지역형)</option><option>예비(부처형)</option><option>사회적협동조합</option><option>협동조합</option><option>기타</option>
+                <option value="">선택</option><option>인증</option><option>예비</option><option>예비(지역형)</option><option>예비(부처형)</option><option>사회적협동조합</option><option>협동조합</option><option>성장지원센터 멤버십 회원기업</option><option>기타</option>
               </select>
             </div>
             <div class="field"><label class="req">전화번호(회사)</label><input id="phoneOffice" type="text"></div>
@@ -2608,6 +2624,16 @@
             </table>
           </div>
           <div class="field" style="margin-top:16px;"><label>지표 3 메모</label><textarea id="memo3"></textarea></div>
+          <div class="i3-assessor-copy">
+            <div class="i3-assessor-label">내부</div>
+            <div class="summary" id="i3InternalSummary">기업정보의 조직유형과 사회적목적을 선택해 주세요.</div>
+            <div class="i3-assessor-label">외부</div>
+            <div class="i3-external-controls">
+              <div class="field"><label>사회적가치 주요내용</label><textarea id="i3ExternalMainText" placeholder="제품·서비스의 판매·생산, 이용자, 기타에서 확인한 사회적가치 주요내용을 입력하세요."></textarea></div>
+              <div class="field"><label>사회적가치 실현 수준</label><select id="i3ExternalLevel"><option value="">선택</option><option>매우 우수</option><option>우수</option><option>양호</option><option>미흡</option><option>매우 미흡</option><option>확인 불가</option></select><div class="hint">등급판정표를 참고하여 선택</div></div>
+            </div>
+            <div class="summary" id="i3ExternalSummary">사회적가치 실현 수준을 선택해 주세요.</div>
+          </div>
           <div class="score-box total-only">
             <div class="score-line" hidden><span>내부 운영 입력 여부</span><strong id="i3InternalStatus">미입력</strong></div>
             <div class="score-line" hidden><span>외부 운영 입력 여부</span><strong id="i3ExternalStatus">미입력</strong></div>
@@ -4489,6 +4515,7 @@ function updateIndicator2(){
   ensureSummaryCopyButton($("i2Summary"));
 }
 function getAutoI3Obligation(){
+  if (($("orgType").value || "").trim() === "성장지원센터 멤버십 회원기업") return "N";
   const purpose = ($("socialPurpose").value || "").trim();
   if (["일자리제공형","지역사회공헌형-가형","혼합형"].includes(purpose)) return "Y";
   if (["사회서비스제공형","지역사회공헌형-나형","지역사회공헌형-다형","기타(창의·혁신)형","기타(창의·혁신형 포함)"].includes(purpose)) return "N";
@@ -4511,7 +4538,10 @@ function updateIndicator3Mode(autoObligation){
   setElementsDisabled([$("i3InternalPurposeScore")], hasObligation || !autoObligation);
   obligationRow?.classList.toggle("i3-disabled-row", noObligation || !autoObligation);
   cultureRow?.classList.toggle("i3-disabled-row", hasObligation || !autoObligation);
-  $("i3ObligationAutoNote").textContent = autoObligation
+  const membership = ($("orgType").value || "").trim() === "성장지원센터 멤버십 회원기업";
+  $("i3ObligationAutoNote").textContent = membership
+    ? "성장지원센터 멤버십 회원기업 기준이 적용되었습니다."
+    : autoObligation
     ? `기업정보의 사회적목적에 따라 '${hasObligation ? "예" : "아니요"}'로 자동 판정되었습니다.`
     : "기업정보의 사회적목적을 선택하면 자동 판정됩니다.";
 }
@@ -4560,6 +4590,48 @@ function updateIndicator3Reference(){
     $("i3AvgWageMedianGuide").textContent = "평균시급 중위값: -";
   }
 }
+function getI3OrganizationLabel(orgType){
+  if (orgType === "인증") return "인증사회적기업";
+  if (["예비","예비(지역형)","예비(부처형)"].includes(orgType)) return "예비사회적기업";
+  return "";
+}
+function getI3PhraseValue(id, fallback){
+  const value = ($(id)?.value || "").trim();
+  return value || fallback;
+}
+function buildI3InternalAssessorText(){
+  const orgType = ($("orgType").value || "").trim();
+  const industry = ($("industry").value || "").trim() || "업종 미입력";
+  const purpose = ($("socialPurpose").value || "").trim() || "사회적목적 미입력";
+  const culture = getI3PhraseValue("i3Culture", "기업 내부 문화 형성 주요내용");
+  const safety = getI3PhraseValue("i3Safety", "근로자 보건 및 안전 주요내용");
+  const jobQuality = getI3PhraseValue("i3JobQuality", "고용의 질 주요내용");
+
+  if (orgType === "성장지원센터 멤버십 회원기업") {
+    return `(내부) ${industry} 성장지원센터 멤버십 회원기업으로, ${culture} 등 기업 내부 문화 형성을 위한 노력을 하고 있으며, ${safety} 등 근로자 보건 및 안전을 위해 노력하고 있음. 또한, ${jobQuality} 등 근로자 친화적 고용정책 및 근로환경 조성을 위해 노력하고 있음.`;
+  }
+
+  const organizationLabel = getI3OrganizationLabel(orgType);
+  if (!organizationLabel) return "기업정보에서 조직유형을 인증·예비사회적기업 또는 성장지원센터 멤버십 회원기업으로 선택해 주세요.";
+
+  const obligation = getAutoI3Obligation();
+  if (obligation === "Y") {
+    const comparison = getI3EmploymentWageScore();
+    const employmentResult = comparison.employmentPass ? "상회" : "하회";
+    const wageResult = comparison.wagePass ? "상회" : "하회";
+    return `(내부) ${industry} ${purpose} ${organizationLabel}으로, 취약계층 고용비율은 동종업종 중위값을 ${employmentResult}하며, 임금수준은 동종업종 중위값을 ${wageResult}하고, ${safety} 등 근로자 보건 및 안전을 위해 노력하고 있음. 또한, ${jobQuality} 등 근로자 친화적 고용정책 및 근로환경 조성을 위해 노력하고 있음.`;
+  }
+  if (obligation === "N") {
+    return `(내부) ${industry} ${purpose} ${organizationLabel}으로, ${culture} 등 기업 내부 문화 형성을 위한 노력을 하고 있으며, ${safety} 등 근로자 보건 및 안전을 위해 노력하고 있음. 또한, ${jobQuality} 등 근로자 친화적 고용정책 및 근로환경 조성을 위해 노력하고 있음.`;
+  }
+  return "기업정보에서 사회적목적을 선택해 주세요.";
+}
+function buildI3ExternalAssessorText(){
+  const mainText = ($("i3ExternalMainText")?.value || "").trim() || "제품·서비스의 판매·생산, 이용자, 기타에서 발생하는 사회적가치 주요내용";
+  const level = ($("i3ExternalLevel")?.value || "").trim();
+  if (!level) return "사회적가치 실현 수준을 선택해 주세요.";
+  return `(외부) ${mainText} 등을 통해 사회적가치를 확인하였으며, 종합적으로 평가하였을 때 사회적가치 실현 수준이 ${level}함.`;
+}
 function updateIndicator3(){
   updateIndicator3Reference();
   const autoObligation = getAutoI3Obligation();
@@ -4585,6 +4657,10 @@ function updateIndicator3(){
   $("i3ExternalStatus").textContent = externalDone ? "입력됨" : "미입력";
   $("score3").textContent = internalScore + externalScore;
   $("i3OverallStatus").textContent = internalScore || externalScore ? "점수 산정" : (internalDone && externalDone ? "기본 작성 완료" : (internalDone || externalDone ? "일부 작성" : "작성 전"));
+  $("i3InternalSummary").textContent = buildI3InternalAssessorText();
+  ensureSummaryCopyButton($("i3InternalSummary"));
+  $("i3ExternalSummary").textContent = buildI3ExternalAssessorText();
+  ensureSummaryCopyButton($("i3ExternalSummary"));
 }
 function buildI3SamplePromptData(){
   return {
@@ -7676,7 +7752,7 @@ function collectData(){
     i3SalePurpose:$("i3SalePurpose").value, i3SaleTarget:$("i3SaleTarget").value, i3SaleAction:$("i3SaleAction").value,
     i3ProdPurpose:$("i3ProdPurpose").value, i3ProdTarget:$("i3ProdTarget").value, i3ProdAction:$("i3ProdAction").value,
     i3UserPurpose:$("i3UserPurpose").value, i3UserTarget:$("i3UserTarget").value, i3UserAction:$("i3UserAction").value,
-    i3EtcPurpose:$("i3EtcPurpose").value, i3EtcTarget:$("i3EtcTarget").value, i3EtcAction:$("i3EtcAction").value, memo3:$("memo3").value,
+    i3EtcPurpose:$("i3EtcPurpose").value, i3EtcTarget:$("i3EtcTarget").value, i3EtcAction:$("i3EtcAction").value, i3ExternalMainText:$("i3ExternalMainText").value, i3ExternalLevel:$("i3ExternalLevel").value, memo3:$("memo3").value,
 
     i4None:$("i4None").checked, i4Rows:getI4Rows(), memo4:$("memo4").value,
     i5None:$("i5None").checked, i5Rows:getI5Rows(), memo5:$("memo5").value,
