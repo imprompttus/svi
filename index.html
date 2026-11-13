@@ -4253,7 +4253,9 @@ function isIndicator8Done(){ return $("i8None").checked || num($("i8TotalPay").v
 function isIndicator9Done(){ return $("i9None").checked || num($("i9TrainingCost").value) || getI9Rows().some(r=>r.name || r.b || r.c); }
 function isIndicator10Done(){ return $("i10StartupZeroSales").checked || $("i10HadSalesButNoWorkers").checked || num($("i10Workers2025").value) || num($("i10Workers2024").value); }
 function isIndicator11Done(){ return $("i11ZeroSales2024").checked || num($("i11Sales2025").value) || num($("i11Sales2024Input").value); }
-function isIndicator12Done(){ return $("i12ZeroSales2024").checked || $("i12Profit2025").value || $("i12Profit2024Input").value; }
+function isIndicator12Done(){
+  return $("i12ZeroSales2024").checked || String($("profit2025").value || "").trim() !== "" || String($("profit2024").value || "").trim() !== "";
+}
 
 function isIndicator13Done(){
   return $("i13NoWorkers2025").checked || $("i13ZeroSales2024").checked || $("i13ZeroWorkersAny").checked || num($("i13Hours2025").value) || num($("i13Hours2024").value) || $("memo13").value.trim();
@@ -5619,14 +5621,17 @@ function updateIndicator12(){
   updateIndicator12Table();
   const zero2024 = $("i12ZeroSales2024").checked;
   const a = num($("i12Profit2025").value), b = num($("i12Profit2024Input").value);
+  const has2025Input = String($("profit2025").value || "").trim() !== "";
+  const has2024Input = String($("profit2024").value || "").trim() !== "";
+  const bothZero = a === 0 && b === 0 && !zero2024;
   let growth = "0";
   if (zero2024) growth = "DIV/0!";
   else if (b === 0) growth = a !== 0 ? "DIV/0!" : "0";
   else growth = (((a-b)/Math.abs(b))*100).toFixed(2);
-  const band = getI12ProfitBandLabel(a);
-  const bandScore = scoreBand3Weighted(band, [1,2,3]);
+  const band = bothZero ? "미산정" : getI12ProfitBandLabel(a);
+  const bandScore = bothZero ? 0 : scoreBand3Weighted(band, [1,2,3]);
   const growthRaw = Number.parseFloat(growth);
-  const growthScore = Number.isFinite(growthRaw) ? scoreGrowth3ByBands(growthRaw, getCurrentProfitGrowthBands()) : 0;
+  const growthScore = bothZero ? 0 : (Number.isFinite(growthRaw) ? scoreGrowth3ByBands(growthRaw, getCurrentProfitGrowthBands()) : 0);
   const totalScore = bandScore + growthScore;
   $("i12GrowthRate").value = growth;
   $("i12BandText").textContent = band;
@@ -5638,9 +5643,11 @@ function updateIndicator12(){
   if (zero2024) {
     $("i12Summary").textContent = `우리 기업의 영업이익이 동종업종 영업이익 분포의 ${band}입니다. 우리 기업의 영업이익 성장률이 확인되지 않습니다.`;
     $("i12Status").textContent = "예외 입력";
-  } else if (!a && !b) {
-    $("i12Summary").textContent = "우리 기업의 영업이익이 동종업종 영업이익 분포의 20% 미만입니다.";
-    $("i12Status").textContent = "작성 전";
+  } else if (bothZero) {
+    $("i12Summary").textContent = has2025Input || has2024Input
+      ? "2024년과 2025년 영업이익이 모두 0원으로 점수를 산정하지 않습니다."
+      : "2024년과 2025년 영업이익을 입력해주세요.";
+    $("i12Status").textContent = has2025Input || has2024Input ? "작성됨" : "작성 전";
   } else {
     $("i12Summary").textContent = `우리 기업의 영업이익이 동종업종 영업이익 분포의 ${band}이며, 영업이익 성장률은 ${growth}%입니다.`;
     $("i12Status").textContent = "작성됨";
@@ -7272,6 +7279,10 @@ function upsertActiveCompany(manual=false){
   const existing = index >= 0 ? companies[index] : null;
   const previousData = existing?.data || {};
   const data = collectData();
+  if (!existing && !String(data.companyName || "").trim()) {
+    if ($("saveStatus")) $("saveStatus").textContent = "기업명을 입력하면 자동 저장됩니다.";
+    return;
+  }
   const summary = getCurrentScoreSummary();
   data.totalScore = summary.total;
   data.grade = summary.grade;
@@ -7409,7 +7420,7 @@ function createNewCompany(){
   showApp();
   refreshAll();
   renderStep();
-  saveData(true);
+  if ($("saveStatus")) $("saveStatus").textContent = "기업명을 입력하면 자동 저장됩니다.";
 }
 async function deleteCompany(id){
   const record = getCompanies().find(company => company.id === id);
