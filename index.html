@@ -1486,6 +1486,15 @@
     #openIndicator4SearchBtn{
       transition:transform .18s ease, filter .18s ease;
     }
+    #newCompanyBtn{
+      background:linear-gradient(135deg,#16806a,#249b7d);
+      border-color:#16806a;
+      box-shadow:0 10px 18px rgba(22,128,106,.20);
+    }
+    #newCompanyBtn:hover{
+      background:linear-gradient(135deg,#11705d,#1f8f73);
+      border-color:#11705d;
+    }
     #newCompanyBtn:hover,
     #backToDashboardBtn:hover,
     #openDocReviewBtn:hover,
@@ -1592,6 +1601,110 @@
       font-weight:900;
     }
     .company-table tr:hover td{background:#fbfdff}
+    .company-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+      gap:12px;
+      padding:16px;
+    }
+    .company-card{
+      position:relative;
+      min-width:0;
+      min-height:116px;
+      padding:16px 42px 14px 16px;
+      border:1px solid #d8e4f0;
+      border-radius:14px;
+      background:linear-gradient(145deg,#fff,#f8fbff);
+      box-shadow:0 4px 12px rgba(28,67,104,.06);
+      cursor:pointer;
+      transition:border-color .16s ease,box-shadow .16s ease,transform .16s ease;
+    }
+    .company-card:hover,
+    .company-card:focus-visible{
+      border-color:#8cb5dc;
+      box-shadow:0 8px 20px rgba(28,67,104,.13);
+      transform:translateY(-2px);
+      outline:0;
+    }
+    .company-card .company-name-cell{
+      display:block;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:15px;
+    }
+    .company-card .company-meta{
+      display:-webkit-box;
+      overflow:hidden;
+      -webkit-box-orient:vertical;
+      -webkit-line-clamp:2;
+      margin-top:8px;
+    }
+    .company-card .company-dates{margin-top:9px}
+    .company-card-top{
+      display:flex;
+      align-items:center;
+      gap:7px;
+      min-width:0;
+    }
+    .coaching-badge{
+      display:inline-flex;
+      align-items:center;
+      flex:0 0 auto;
+      padding:3px 7px;
+      border-radius:999px;
+      background:#e9f3ff;
+      color:#205d98;
+      font-size:10px;
+      font-weight:800;
+    }
+    .company-card-menu{
+      position:absolute;
+      top:10px;
+      right:9px;
+      z-index:2;
+    }
+    .company-card-menu summary{
+      display:grid;
+      place-items:center;
+      width:28px;
+      height:28px;
+      border-radius:8px;
+      color:#5a7189;
+      font-size:18px;
+      font-weight:900;
+      line-height:1;
+      cursor:pointer;
+      list-style:none;
+    }
+    .company-card-menu summary::-webkit-details-marker{display:none}
+    .company-card-menu summary:hover{background:#eaf2fa;color:#173a5e}
+    .company-card-menu-popover{
+      position:absolute;
+      top:32px;
+      right:0;
+      display:grid;
+      gap:3px;
+      width:112px;
+      padding:6px;
+      border:1px solid #d7e3f0;
+      border-radius:10px;
+      background:#fff;
+      box-shadow:0 10px 25px rgba(21,45,72,.18);
+    }
+    .company-card-menu-popover button{
+      border:0;
+      border-radius:7px;
+      padding:7px 9px;
+      background:transparent;
+      color:#24415f;
+      text-align:left;
+      font-size:12px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .company-card-menu-popover button:hover{background:#eef5fb}
+    .company-card-menu-popover button.danger{color:#b42318}
     .company-title-line{
       display:flex;
       align-items:center;
@@ -1785,6 +1898,8 @@
     }
     @media(max-width:700px){
       .dashboard-link-group,.dashboard-work-group{flex-wrap:wrap}
+      .company-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;padding:10px}
+      .company-card{min-height:108px;padding:13px 36px 12px 13px}
     }
     @media print{
       @page{size:A4 portrait;margin:12mm}
@@ -1838,18 +1953,7 @@
       <div class="dashboard-toolbar">
         <input class="dashboard-search" id="companySearch" type="search" placeholder="기업명, 대표자명, 조직유형, 지역 검색">
       </div>
-      <div class="table-wrap">
-        <table class="company-table">
-          <thead>
-            <tr>
-              <th>기업</th>
-              <th style="width:12%;text-align:center;">심화코칭</th>
-              <th style="width:22%;text-align:center;">관리</th>
-            </tr>
-          </thead>
-          <tbody id="companyListBody"></tbody>
-        </table>
-      </div>
+      <div class="company-grid" id="companyListBody"></div>
       <div class="empty-companies is-hidden" id="emptyCompanies">아직 등록된 기업이 없습니다. `기업 추가`를 눌러 첫 진단을 시작하세요.</div>
     </div>
   </div>
@@ -7234,27 +7338,24 @@ async function renderDashboard(forceReload=false){
     const updated = company.updatedAt || data.updatedAt;
     const deepCoaching = !!(company.deepCoaching || data.deepCoaching);
     return `
-    <tr>
-      <td>
-        <div class="company-title-line">
-          <span class="company-name-cell">${escapeHtml(company.name || "새 기업")}</span>
+    <article class="company-card" role="button" tabindex="0" data-action="open" data-id="${company.id}" aria-label="${escapeHtml(company.name || "새 기업")} 열기">
+      <div class="company-card-top">
+        <span class="company-name-cell">${escapeHtml(company.name || "새 기업")}</span>
+        ${deepCoaching ? '<span class="coaching-badge">심화코칭</span>' : ''}
+      </div>
+      <div class="company-meta">${escapeHtml(company.ceo || "-")} · ${escapeHtml(orgType || "-")}<br>${escapeHtml(region || "-")} · ${escapeHtml(phoneMobile || "-")}</div>
+      <div class="company-dates">최근 수정 ${formatDateShort(updated || created)}</div>
+      <details class="company-card-menu">
+        <summary aria-label="기업 관리 메뉴">⋯</summary>
+        <div class="company-card-menu-popover">
+          <button type="button" data-action="result" data-id="${company.id}">결과 보기</button>
+          <label class="coaching-check">
+            <input type="checkbox" class="deep-coaching-check" data-id="${company.id}" ${deepCoaching ? "checked" : ""}> 심화코칭
+          </label>
+          <button class="danger" type="button" data-action="delete" data-id="${company.id}">삭제</button>
         </div>
-        <div class="company-meta">${escapeHtml(company.ceo || "-")} / ${escapeHtml(orgType || "-")} / ${escapeHtml(region || "-")} / ${escapeHtml(phoneMobile || "-")}</div>
-        <div class="company-dates">생성 ${formatDateTime(created)} / 수정 ${formatDateTime(updated)}</div>
-      </td>
-      <td class="coaching-cell">
-        <label class="coaching-check">
-          <input type="checkbox" class="deep-coaching-check" data-id="${company.id}" ${deepCoaching ? "checked" : ""}>
-        </label>
-      </td>
-      <td>
-        <div class="company-actions">
-          <button class="mini-btn primary" type="button" data-action="open" data-id="${company.id}">수정</button>
-          <button class="mini-btn" type="button" data-action="result" data-id="${company.id}">결과</button>
-          <button class="mini-btn danger" type="button" data-action="delete" data-id="${company.id}">삭제</button>
-        </div>
-      </td>
-    </tr>
+      </details>
+    </article>
   `}).join("");
 }
 function showDashboard(){
@@ -7873,12 +7974,21 @@ $("clearCompanyPasteBtn").addEventListener("click", () => {
 });
 $("companyListBody").addEventListener("click", e => {
   if (e.target.closest(".deep-coaching-check")) return;
+  if (e.target.closest(".company-card-menu") && !e.target.closest("button[data-action]")) return;
   const button = e.target.closest("button[data-action]");
-  if (!button) return;
-  const id = button.dataset.id;
-  if (button.dataset.action === "delete") deleteCompany(id);
-  else if (button.dataset.action === "result") openCompany(id, "15");
+  const target = button || e.target.closest(".company-card[data-action='open']");
+  if (!target) return;
+  const id = target.dataset.id;
+  if (target.dataset.action === "delete") deleteCompany(id);
+  else if (target.dataset.action === "result") openCompany(id, "15");
   else openCompany(id);
+});
+$("companyListBody").addEventListener("keydown", e => {
+  if ((e.key !== "Enter" && e.key !== " ") || e.target.closest(".company-card-menu")) return;
+  const card = e.target.closest(".company-card[data-id]");
+  if (!card) return;
+  e.preventDefault();
+  openCompany(card.dataset.id);
 });
 $("companyListBody").addEventListener("change", e => {
   const checkbox = e.target.closest(".deep-coaching-check");
