@@ -2224,7 +2224,7 @@
       <div class="doc-review-modal-top">
         <div>
           <h2 class="doc-review-modal-title" id="indicator4SearchTitle">지표4(사회연대경제기업과의 협력 수준) 검색</h2>
-          <div class="doc-review-modal-sub">2025.12.31. 기준 인증사회적기업 3,593 예비사회적기업 652 자활기업 977 조회</div>
+          <div class="doc-review-modal-sub">2025.12.31. 기준 인증사회적기업 3,593 · 예비사회적기업 652 · 자활기업 977 / 2022~2024년 예비사회적기업 1,560 조회</div>
         </div>
         <button class="btn" id="closeIndicator4SearchBtn" type="button">닫기</button>
       </div>
@@ -3066,6 +3066,7 @@
 <script src="config.js"></script>
 <script src="qa-data.js"></script>
 <script src="self-support-enterprises-data.js"></script>
+<script src="historical-prelim-enterprises-data.js"></script>
 <script>
 window.SVI_SUPABASE_URL = window.SVI_SUPABASE_URL || "https://vjtrhzmxpifknzaonfsc.supabase.co";
 window.SVI_SUPABASE_ANON_KEY = window.SVI_SUPABASE_ANON_KEY || "sb_publishable_AaicLCBdYKUlFhB-9IuZDg_M0VOWvN0";
@@ -6819,7 +6820,7 @@ function normalizeEnterpriseSearchText(value){
 function searchSocialEnterprises(query){
   const q = normalizeEnterpriseSearchText(query);
   if (!q) return [];
-  const sources = [...SOCIAL_ENTERPRISES, ...(window.SELF_SUPPORT_ENTERPRISES || [])];
+  const sources = [...SOCIAL_ENTERPRISES, ...(window.HISTORICAL_PRELIM_ENTERPRISES || []), ...(window.SELF_SUPPORT_ENTERPRISES || [])];
   return sources.filter(item => normalizeEnterpriseSearchText(item.name).includes(q));
 }
 function renderIndicator4Search(){
@@ -6865,7 +6866,7 @@ function renderIndicator4Search(){
     </div>
   ` : `
     <div class="indicator4-result-card">
-      <div class="indicator4-result-name"><span class="indicator4-result-badge ${item.kind === "예비" ? "pre" : ""}">${escapeHtml(item.kind || "인증")}</span><span>${escapeHtml(item.name || "-")}</span></div>
+      <div class="indicator4-result-name"><span class="indicator4-result-badge ${item.kind === "예비" ? "pre" : ""}">${escapeHtml(item.sourcePeriod ? `예비 ${item.sourcePeriod}` : (item.kind || "인증"))}</span><span>${escapeHtml(item.name || "-")}</span></div>
       <div class="indicator4-result-grid">
         <div class="indicator4-result-item">
           <div class="indicator4-result-label">인증번호</div>
@@ -6880,14 +6881,17 @@ function renderIndicator4Search(){
           <div class="indicator4-result-value">${escapeHtml(item.purposeType || "-")}</div>
         </div>
         <div class="indicator4-result-item">
-          <div class="indicator4-result-label">대표자</div>
-          <div class="indicator4-result-value">${escapeHtml(item.ceo || "-")}</div>
+          <div class="indicator4-result-label">${item.sourcePeriod ? "지정일자" : "대표자"}</div>
+          <div class="indicator4-result-value">${escapeHtml(item.sourcePeriod ? item.designationDate : (item.ceo || "-"))}</div>
         </div>
       </div>
       <div class="indicator4-result-extra">
         <strong>분야</strong> ${escapeHtml(item.field || "-")}
-        <span aria-hidden="true"> · </span><strong>전화번호</strong> ${escapeHtml(item.phone || "-")}
+        ${item.sourcePeriod
+          ? `<span aria-hidden="true"> · </span><strong>예비형태</strong> ${escapeHtml(item.preliminaryType || item.designationType || "-")}${item.ministryType ? `<span aria-hidden="true"> · </span><strong>부처형</strong> ${escapeHtml(item.ministryType)}` : ""}`
+          : `<span aria-hidden="true"> · </span><strong>전화번호</strong> ${escapeHtml(item.phone || "-")}`}
         ${item.business ? `<br><strong>사업내용</strong> ${escapeHtml(item.business)}` : ""}
+        ${item.address ? `<br><strong>주소</strong> ${escapeHtml(item.address)}` : ""}
       </div>
     </div>
   `).join("");
